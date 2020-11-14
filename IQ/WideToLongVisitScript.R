@@ -3,6 +3,7 @@
 #
 # This script will convert data from wide to long format
 # Date: Jul2020
+#     Update: Nov2020
 ###############################################################################
 ###############################################################################
 ###############################################################################
@@ -61,87 +62,82 @@ saveExt <- '.csv'                                                               
 # Read Files Into R Environment
 #----------------------------------------------------------------------
 ## read visit data file---------------------------------
-vdfile = read_excel(paste(vdPath, 
+VisitDate_df = read_excel(paste(vdPath, 
                           vdName, 
                           vdExt, sep = ""), 
-                    sheet = vdSheet)
+                    sheet = vdSheet) %>%
+  data.frame()
 
 
 ## read zip code file----------------------------------
-Contactsfile = read_excel(paste(ContactsPath, 
+Contacts_df = read_excel(paste(ContactsPath, 
                                 ContactsName, 
                                 ContactsExt, sep = ""), 
-                          sheet = ContactsSheet)
-Contactsdf = data.frame(Contactsfile)
+                          sheet = ContactsSheet) %>%
+  data.frame()
+
 
 ## read language file----------------------------------
-Languagefile = read_excel(paste(LangPath,
+Language_df = read_excel(paste(LangPath,
                                 LangName,
                                 LangExt, sep = ""),
-                          sheet = LangSheet)
-langdf = data.frame(Languagefile)
+                          sheet = LangSheet) %>%
+  data.frame()
 
 ## read amendment file---------------------------------
-amendfile = read_excel(paste(amendPath, 
+Amendment_df = read_excel(paste(amendPath, 
                              amendName, 
-                             amendExt, sep = ""))
+                             amendExt, sep = "")) %>%
+  data.frame()
 #----------------------------------------------------------------------
 # Format Columns
 #----------------------------------------------------------------------
 
-## vdfile:---------------
-## specify columns that need to be manipulated in the vdfile
+## visit date tibble:---------------
+## specify columns that need to be manipulated in the visitdate file
 charCols = c('Site', 'Patient', 'Gender')
 dateCols = c('Patient.Visit.Processed.Date')
 dashCols = c('Investigator')
 
-## with visit data file, select columns of interest
-vdf = data.frame(vdfile) %>%
-  dplyr::select('Site', 'Site.Name', 'Investigator', 'Patient', 'Gender',       
-                'Visit', 'Patient.Visit.Processed.Date', 'Patient.Status')
-
 # Convert columns that have numbers but should be factors
-vdf[charCols] = lapply(vdf[charCols], as.character)
+VisitDate_df[charCols] = lapply(VisitDate_df[charCols], as.character)
 
 # Convert date columns
-vdf[dateCols] = lapply(vdf[dateCols], as.Date, origin="1970-01-01")
+VisitDate_df[dateCols] = lapply(VisitDate_df[dateCols], 
+                                as.Date, origin="1970-01-01")
 
 # Strip dashes (except when they are between names, ie: hyphenated name)
-vdf[dashCols] = lapply(vdf[dashCols], 
-                       function(y) gsub('( |^)-+|-+( |$)', '\\1', 
-                                        gsub("[^ [:alnum:]'-]", '', y)))
+VisitDate_df[dashCols] = lapply(VisitDate_df[dashCols], 
+                                function(y) gsub('( |^)-+|-+( |$)', '\\1', 
+                                                 gsub("[^ [:alnum:]'-]", 
+                                                      '', y)))
 
 
 ## zipcode file:---------------
-Contactsdf$Site = as.character(Contactsdf$'Site.Reference..')
+Contacts_df$Site = as.character(Contacts_df$'Site.Reference..')
 
 ## Language file:---------------
-langdf$Subject = as.character(langdf$Subject)
+Language_df$Subject = as.character(Language_df$Subject)
 
 ## Amend file:---------------
-amendfile$Patient = as.character(amendfile$Patient)
+Amendment_df$Patient = as.character(Amendment_df$Patient)
 
 #----------------------------------------------------------------------
 # PIVOT Long to wide for Visit 0 and 1 and rename to corresponding visit name
 #----------------------------------------------------------------------
 
 
+## converted to data.table and cast long to wide on visit column
+VisitDate_wide = dcast(setDT(VisitDate_df), ...~ Visit,  ## ... gets vars not specified
+                       value.var = "Patient.Visit.Processed.Date")
 
-castvdf = dcast(setDT(vdf), ...~ Visit,  ## ... gets all vars not specified
-                value.var = "Patient.Visit.Processed.Date")
-
-names(castvdf)[names(castvdf)=="0"] = 'Visit_0' 
-names(castvdf)[names(castvdf)=="1"] = 'Visit_1' 
+names(VisitDate_wide)[names(VisitDate_wide)=="0"] = 'Visit_0' 
+names(VisitDate_wide)[names(VisitDate_wide)=="1"] = 'Visit_1' 
 
 ## Add column to identify Missing D1 dates
-castvdf = as.data.frame(castvdf) %>%
-  mutate("D1.Date.Present" = ifelse((is.na(castvdf$Visit_1)) |
-                                      (is.null(castvdf$Visit_1)) | 
-                                      castvdf$Visit_1 == 0 | 
-                                      'Visit_1' == "" |
-                                      'Visit_1' == " " |
-                                      'Visit_1' == "NA", 
-                                    "Missing", "Present"))
+VisitDate_widedf = data.frame(VisitDate_wide) %>%
+  dplyr::mutate(D1.Date.Present = ifelse(is.na(Visit_1) | is.null(Visit_1),
+                                 "Missing", "Present"))
 
 #----------------------------------------------------------------------
 # Calculate Future Visits
@@ -151,24 +147,33 @@ VisDay = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
            20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 60, 85)
 
 for (i in VisDay){
-  castvdf[paste('Visit', as.character(i), sep = "_")] = castvdf$Visit_1 + i - 1
+  VisitDate_widedf[paste('Visit', 
+                         as.character(i), 
+                         sep = "_")] = VisitDate_widedf$Visit_1 + i - 1
 }
 
 
 #----------------------------------------------------------------------
 # PIVOT Wide to long
 #----------------------------------------------------------------------
+
+
 ## list the columns to keep in the df (those that aren't being pivoted)
 statcols = c('Site', 'Site.Name', 'Investigator', 'Patient', 'Gender', 
              'Patient.Status', 'D1.Date.Present')
 
-meltvdf = melt(setDT(castvdf), 
-               id.var = statcols,
-               variable.name = 'Visit',
-               measure.vars = patterns('Visit_'), ## pattern gets all visit cols
-               value.name = "Visit.Date")
+## convert wide to long to each visit is a row for each subject
+VisitDate_melt = melt(setDT(VisitDate_widedf), 
+                      id.var = statcols,
+                      variable.name = 'Visit',
+                      measure.vars = patterns('Visit_'), ## pattern gets all visit cols
+                      value.name = "Visit.Date")
 
-finalvdf = data.frame(meltvdf) %>%
+
+
+## CREATE FINAL DATAFRAME FOR EXPORT-------------------------------------------
+VisitDate_final = data.frame(VisitDate_melt) %>%
+  ## add reference data (past, today, future) based on each visit date
   dplyr::mutate(Visit.Number = as.numeric(sub(".*_", "", Visit)),
                 Reference.Day.Flag = 
                   ifelse(Visit.Date == as.Date(Sys.time()), 
@@ -178,24 +183,32 @@ finalvdf = data.frame(meltvdf) %>%
                       ifelse(Visit.Date < as.Date(Sys.time()), 
                              "Past", "Future"))),
                 
+                ## these columsn allow aggregation by week and month
                 Day.of.Week = weekdays(Visit.Date),
                 Week.Number = week(Visit.Date),
                 Month.Number = format(Visit.Date, '%m')) %>%
   
-  dplyr::left_join(Contactsdf[,c('Site',
-                                 'Location.State.Province', 
-                                 'Location.City')],
+  
+  ## join site location data
+  dplyr::left_join(Contacts_df[,c('Site',
+                                  'Location.State.Province', 
+                                  'Location.City')],
                    by = c('Site' = 'Site')) %>%
   
-  dplyr::left_join(langdf[, c('Subject', 'Language')],
+  ## join subject language data
+  dplyr::left_join(Language_df[, c('Subject', 'Language')],
                    by = c('Patient' = 'Subject')) %>%
   
+  ## default to english if no language provided
   dplyr::mutate(Language = ifelse(is.na(Language), 'English', Language)) %>%
   
-  dplyr::left_join(amendfile, by = 'Patient') %>%
-  dplyr::mutate(Amendment = ifelse(is.na(Amd), "", Amd)) %>%
+  ## joing protocol amendment data
+  dplyr::left_join(Amendment_df[, c('Patient', 'Amd')], by = 'Patient') %>%
   
-  dplyr::arrange(`Site`, `Patient`, `Visit.Date`) %>%
+  ## add a space here so it doesn't show as blank in the output pivot table
+  dplyr::mutate(Amendment = ifelse(is.na(Amd), " ", Amd)) %>%
+  
+  dplyr::arrange(Site, Patient, Visit.Date) %>%
   
   dplyr::select(Site, Site.Name, Investigator, 
                 Location.State.Province, Location.City, 
@@ -210,6 +223,6 @@ finalvdf = data.frame(meltvdf) %>%
 # Write Melted Data to File
 #----------------------------------------------------------------------
 
-write.csv(finalvdf, file.path(savePath, 
-                              paste(saveName, saveExt, sep = "")),
+write.csv(VisitDate_final, file.path(savePath, 
+                                     paste(saveName, saveExt, sep = "")),
           row.names = FALSE)
