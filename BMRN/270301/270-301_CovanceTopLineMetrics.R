@@ -16,16 +16,6 @@
 ##------------------------------------------------------------------------------
 ## LOAD PACKAGES
 
-lpkgs = c('haven', 'stringr', 'dplyr', 'tidyr', 'lubridate', 'purrr', 'ggplot2')
-
-# loop through required packages & if not already installed, load, then install
-for(pkg in lpkgs) {
-  
-  if (!require(pkg, character.only = TRUE)) {
-    install.packages(pkg)
-    library(pkg, character.only = TRUE)
-  }
-}
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
@@ -33,7 +23,7 @@ for(pkg in lpkgs) {
 
 ## NOTE: should not contain results. uses 270-301_CovanceAll_noResults file only
 source('270-301_svCompliance.R')
-source('270-301_Covance_bl_ub_bw.R')
+source('270-301_Covance_BIND_ALL.R')
 
 
 ##------------------------------------------------------------------------------
@@ -61,7 +51,7 @@ tlmSpecs = list(CPK = 144,
                 FVIII_Activity = c(623, 625, 898, 900),
                 FVIII_Genotype = c(760, 871, 872, 873),
                 HLA_Genotype = c(805, 806, 807, 808, 809, 810, 868, 869, 870, 
-                                 878, 879, 880, 881, 882, 883))
+                                 878, 879, 880, 881, 882, 883, 9991, 9992, 9993))
 
 ## create dataframe from tlmSpecs list of lists
 tlmSpecsdf = purrr::map2_df(tlmSpecs, names(tlmSpecs), function(x, y){
@@ -104,8 +94,8 @@ specList = c('ALT Baseline', 'ALT Screening',
 ##------------------------------------------------------------------------------
 ## CREATE SECONDARY TABLES
 
-## covFilter : filter '270-301_Covance_bl_ub_bw.R' output to spec
-covFilter = covAll_NoResults %>%
+## filter '270-301_Covance_BIND_ALL.R' output to spec
+covFilter = LabBindAll_NoResults %>%
   ## rename subject column to use fix subject column with correct subID
   dplyr::rename(SUBJECT_orig = SUBJECT) %>%
   dplyr::mutate(SUBJECT = ifelse(is.na(SUBJECT_fix), SUBJECT_orig, 
@@ -114,7 +104,7 @@ covFilter = covAll_NoResults %>%
   ## to deal with >1 sample on same date that has been cx, results = yes & no
   dplyr::filter(Results_Present != 'No') %>%
   
-  ## add tlmSpecsdf LBSPID and lab analyte grouping
+  ## add LBSPID and lab analyte grouping (note acts as filter for LBSPID)
   dplyr::inner_join(tlmSpecsdf, by = 'LBSPID') %>%
   dplyr::arrange(SUBJECT, LBDAT, LBSPID)
 
@@ -143,6 +133,7 @@ covTLM = svCompliance %>%
   
   ## Filter out visits that didn't occur:  
   dplyr::filter(Visit_Expected == 'Yes') %>%
+  dplyr::filter(!is.na(Day_1)) %>%
   dplyr::select(Subject, FolderName, OID, FolderSeq, 
                 Screening, Smart_Re_Screening, SCRNFAIL_COD,
                 Baseline, Day_1, Date_of_Visit) %>%
