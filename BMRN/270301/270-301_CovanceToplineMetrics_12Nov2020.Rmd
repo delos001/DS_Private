@@ -1,7 +1,7 @@
 ---
 title: "270-301 Covance Topline Metrics"
 author: "Jason Delosh"
-date: "11/13/2020"
+date: "13 Nov 2020"
 output: 
   html_document:
     toc: yes
@@ -14,7 +14,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
 
-library(knitr); library(kableExtra)
+library(knitr); library(kableExtra); library(ggplot2)
 ```
 
 ## **Introduction**
@@ -56,8 +56,6 @@ The purpose is to re-run the anlsysis using the raw HLA Blood Works csv file to 
 '270-301_CovanceTopLineMetrics.R'
 ```{r, include=FALSE}
 source('270-301_CovanceTopLineMetrics.R', local = knitr::knit_global())
-
-library('ggplot2')
 ```
 
 
@@ -267,7 +265,7 @@ covTLM_filter_HLA = covTLM_filter %>%
 
 In the table below, all missing HLA Genotype tests, (`r length(covTLM_filter_HLA$Results_Present)`), are tabulated.  This includes the HLA-DQA1 alleles, for which a pseudo-LBSPID was added to include them in this analysis.  While the number of missing results are reduced, we observe that most of the alleles are not missing at random suggesting additional rules determine whether a sample is required to be tested, and therefore truly missing.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, , fig.cap = ""}
 ggplot(covTLM_filter_HLA, aes(x = LBTEST_eqv)) + 
   geom_bar(fill = 'light blue') + 
   geom_text(aes(label = ..count..),

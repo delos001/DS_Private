@@ -68,10 +68,10 @@ bwHLA_LBSPID = c('HLA-A Allele 1' = 805,
                  'HLA Typing DRB1 Non-excluded alleles' = 868,
                  'HLA Typing DQB1 Non-excluded alleles' = 869,
                  'HLA Typing DPB1 Non-excluded alleles' = 870,
-                 ## manually added because missing from DTS: to update!!
-                 'HLA-DQA1 Allele 1' = 9991,
-                 'HLA Typing DQA1 Non-excluded alleles' = 9992,
-                 'HLA-DQA1 Allele 2' = 9993)
+                 ## manually added because missing from DTS: 
+                 'HLA-DQA1 Allele 1' = 1261,
+                 'HLA Typing DQA1 Non-excluded alleles' = 1300,
+                 'HLA-DQA1 Allele 2' = 1262)
 
 
 
