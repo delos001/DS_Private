@@ -1,0 +1,50 @@
+---
+title: "StudyNumber - Title"
+author: "FName LName"
+date: "11/17/2020"
+output: 
+  html_document:
+    toc: yes
+    toc_float: true
+    highlight: zenburn
+    theme: united
+---
+
+
+
+1. Chunk Primary Settings:
+* There are multiple options to set chunk parameters:
+  * Specify global settings to apply to all chunks
+```{r setup}
+knitr::opts_chunk$set(echo = FALSE, include = FALSE, eval = FALSE, 
+                      message = FALSE, warning = FALSE)
+print('Name1')
+```
+  * Create chunk labels that are called later
+```{r label = 'chunk-output-only', include=TRUE, eval = FALSE, echo = TRUE, message = FALSE, warning = FALSE}
+print('{r label = 'chunk-output-only', include=TRUE, eval = FALSE, echo = TRUE, message = FALSE, warning = FALSE}')
+```
+  * Specify on case by case basis through out document
+```{r include=TRUE, eval = TRUE, echo = TRUE}
+print('{r include=TRUE, eval = TRUE, echo = TRUE}')
+```
+
+2. Reporting Standards
+* Headings
+  * BioMarin Logo present in all outputs
+* Body
+  * All tables have caption
+  * All figures have caption or fig.cap
+  * References or link to location required when controlled documents listed
+* References
+  * All data inputs are listed preferably using fs package 
+  * sessionInfo to document package version used in any anlaysis that results in decision with respect to data integrity, safety or study endpoints
+
+  
+* Common Packages
+  * 'haven', 'stringr', 'dplyr', 'tidyr', 'lubridate', 'purrr', 'fs', 'ggplot2', 'magrittr', 'janitor'
+
+
+
+
+
