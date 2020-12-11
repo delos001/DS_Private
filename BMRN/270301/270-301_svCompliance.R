@@ -205,3 +205,12 @@ svCompliance = svSkeleton %>%
                 Over, Over_DataEntry_Date,
                 Visit_Expected, Data_Entry_Expected,
                 Visit_Missing)
+
+
+## write to local if needed
+
+write.csv(svCompliance, 
+          file.path('C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\', 
+                                  'svCompliance.csv'), row.names = FALSE)
+
+

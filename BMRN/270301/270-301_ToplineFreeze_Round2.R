@@ -1,5 +1,5 @@
 
-# TITLE: 270-301 Topline Freeze UAT Script
+# TITLE: 270-301 Topline Freeze Round 2 UAT Script
 # STUDY: 270-301
 # AUTHOR: Jason Delosh
 # DATE: 21Nov2020
@@ -32,6 +32,7 @@ for(pkg in lpkgs) {
 ## LOAD PARENT SCRIPTS
 
 source('270-301_svAnchorData.R')
+source('270-301_svCompliance.R')
 
 
 ##------------------------------------------------------------------------------
@@ -42,7 +43,10 @@ mywd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
 
 path1 = 'BMRN270\\270-301\\EDC_SASOnDemand\\'
 
+outloc = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\BMRN270\\270-301\\ToplineFreeze\\'
+
 ## these will be loaded with svAnchorData.R script so blocked out here
+##     BUT NEED TO MAKE SURE DATA IS CURRENT
 # file1 = 'sv.sas7bdat'
 # file2 = 'dsic.sas7bdat'
 # file3 = 'dssh.sas7bdat'
@@ -151,8 +155,9 @@ svCompMax = svComp_Nov %>%
 
 
 ## AE AE files------------------------------------------------------------------
-
+## need to fix here because its supposed to me AE <= last visit prior to 16Nov---------------------fix
 ae = aeRaw %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
   dplyr::select(Folder, Subject, AESPID, 
                 AESTDAT, AESTDAT_RAW,
                 AESTDAT_YY, AESTDAT_MM, AESTDAT_DD,
@@ -195,10 +200,17 @@ aeCollapse = ae %>%
 
 ## CEB Blood log infusion file--------------------------------------------------
 ceb = cebRaw %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
   dplyr::select(Subject) %>%
-  unique()
+  dplyr::left_join(svCompMax[, c('Subject', 'MaxVisitDate')],
+                              by = 'Subject') %>%
+  unique() %>%
+  dplyr::arrange(Subject)
 
 length(ceb$Subject)
+
+write.csv(ceb, 
+          file.path(outloc, 'CEBoutput.csv'), row.names = FALSE)
 
 ## CER Infusion related reaction file-------------------------------------------
 cer = cerRaw %>%
@@ -211,6 +223,7 @@ length(cer$Subject)
 ## CM Conmed file---------------------------------------------------------------
 
 cm = cmRaw %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
   dplyr::select(Folder, Subject, RecordPosition, 
                 CMSTDAT, CMSTDAT_RAW,
                 CMSTDAT_YY, CMSTDAT_MM, CMSTDAT_DD,
@@ -265,10 +278,11 @@ cm2 = cmRaw %>%
   
 ## CMF FVIII Infusion file------------------------------------------------------
 cmf = cmfRaw %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
   dplyr::select(Folder, Subject, RecordPosition, 
                 CMSTDAT, CMSTDAT_RAW,
                 CMSTDAT_YY, CMSTDAT_MM, CMSTDAT_DD,
-                CMENDAT, CMENDAT_RAW,
+                CMENDAT, CMENDAT_RAW, CMENDTM, CMENDTM_RAW,
                 CMENDAT_YY, CMENDAT_MM, CMENDAT_DD,
                 CMENRTPT) %>%
   dplyr::mutate(stDD_imp = ifelse(grepl("^UN ", 
@@ -310,6 +324,9 @@ cmfCollapse = cmf %>%
   
   dplyr::summarise(CMFRecordPosition_collapse = paste0(RecordPosition, 
                                                        collapse = ','))
+
+write.csv(cmfCollapse, 
+          file.path(outloc, 'CMFcollapse.csv'), row.names = FALSE)
 
 
 ## DM emographics file----------------------------------------------------------
@@ -370,7 +387,7 @@ egCollapse = eg %>%
 
 ## ENR 12Lead ECG file----------------------------------------------------------
 enr = enrRaw %>%
-  #dplyr::filter(Folder != "UNS") %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
   dplyr::select(Subject)
 
 enrCollapse = enr %>%
@@ -385,9 +402,10 @@ enr2 = svAnchorData %>%
 
 ## LBF Local FVII file----------------------------------------------------------
 lbf = lbfRaw %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
   #dplyr::filter(Folder != "UNS") %>%
-  dplyr::select(SUBJECT, LBDAT, LBSTAT, INSTANCENAME) %>%
-  dplyr::mutate(InstanceDate = as.Date(gsub(".*-", "", INSTANCENAME), 
+  dplyr::select(Subject, LBDAT, LBSTAT, InstanceName) %>%
+  dplyr::mutate(InstanceDate = as.Date(gsub(".*-", "", InstanceName), 
                                        format = '%d %b %Y'),
                 StartDateFix = as.Date(ifelse(is.na(LBDAT), 
                                               as.Date(InstanceDate), 
@@ -396,11 +414,11 @@ lbf = lbfRaw %>%
                 ND_exception = ifelse(LBSTAT == 0 & is.na(LBDAT), 1, 0)) %>%
   dplyr::filter(ND_exception == 0) %>%
   dplyr::left_join(svCompMax[, c('Subject', 'MaxVisitDate')],
-                   by = c('SUBJECT' = 'Subject')) %>%
+                   by = c('Subject' = 'Subject')) %>%
   dplyr::filter(MaxVisitDate <= enDat) %>%
   dplyr::filter(StartDateFix <= MaxVisitDate) %>%
-  dplyr::select(SUBJECT, MaxVisitDate) %>%
-  dplyr::arrange(SUBJECT) %>%
+  dplyr::select(Subject, MaxVisitDate) %>%
+  dplyr::arrange(Subject) %>%
   unique()
 
 
@@ -496,7 +514,7 @@ vstCollapse = vst %>%
 
 
 ## write output csvs
-outloc = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\BMRN270\\270-301\\ToplineFreeze\\'
+
 write.csv(aeCollapse, 
           file.path(outloc, 'AEcollapse.csv'), row.names = FALSE)
 
@@ -505,9 +523,6 @@ write.csv(svCompMax,
 
 write.csv(cmCollapse, 
           file.path(outloc, 'CMcollapse.csv'), row.names = FALSE)
-
-write.csv(cmfCollapse, 
-          file.path(outloc, 'CMFcollapse.csv'), row.names = FALSE)
 
 write.csv(dmCollapse, 
           file.path(outloc, 'dmcollapse.csv'), row.names = FALSE)
@@ -541,7 +556,6 @@ write.csv(vsCollapse,
 
 write.csv(mhhCollapse, 
           file.path(outloc, 'mhhcollapse.csv'), row.names = FALSE)
-
 
 write.csv(mhtCollapse, 
           file.path(outloc, 'mhtcollapse.csv'), row.names = FALSE)
