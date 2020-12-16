@@ -40,13 +40,14 @@ source('270-301_svAnchorData.R')
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## LOAD DATA
-mywd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
+localwd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
 
-path1 = 'BMRN270\\270-301\\'
+path270301 = 'BMRN270\\270-301\\'
 
-file1 = 'RAVE_Reporter_StudyConfiguration_Folders.csv'  ## see instructions
+RRSCF = 'RAVE_Reporter_StudyConfiguration_Folders.csv'  ## see instructions
 
-folderConfigRaw = read.csv(file.path(paste(mywd, path1, sep = ''), file1), 
+RRSCFRaw = read.csv(file.path(paste(localwd, path270301, sep = ''), 
+                                     RRSCF), 
                             sep = ",", 
                             na.strings = c("", " ", "NA"))
 
@@ -62,7 +63,7 @@ folderConfigRaw = read.csv(file.path(paste(mywd, path1, sep = ''), file1),
 
 
 ## create subset of forms: only required study visit forms
-rqdForms = folderConfigRaw %>%
+rqdForms = RRSCFRaw %>%
   ## SAS output has hidden character ".' at end of visit names in Name col
   dplyr::mutate(Name = gsub("[^\x20-\x7E]", "", Name),
                 id = 1) %>%  ## id used to join later
@@ -75,13 +76,13 @@ rqdForms = folderConfigRaw %>%
 
 ## subject-visit skeleton table: joined on id for each subject for each visit
 svSkeleton = svRaw %>%
-  select(Subject) %>%
+  select(SUBJECT) %>%
   unique() %>%  ## get unique subject list
   dplyr::mutate(id = 1) %>% ## id used to join later
   
   ## join required forms: yields a row for each visit for each subject
   dplyr::full_join(rqdForms, by = 'id') %>%
-  dplyr::arrange(Subject) %>%
+  dplyr::arrange(SUBJECT) %>%
 
   ## create lower and upper windows based on target
   dplyr::mutate(LWindow = ifelse(is.na(Target), NA,
@@ -99,6 +100,6 @@ svSkeleton = svRaw %>%
   ## remove non-data entry folders from df
   dplyr::filter(!grepl("Year", FOLDERNAME)) %>%
   dplyr::filter(!grepl('W1P', OID)) %>%
-  dplyr::select(Subject, FOLDERNAME, OID, Parent.Folder, 
+  dplyr::select(SUBJECT, FOLDERNAME, OID, Parent.Folder, 
                 End, Over, 
                 LWindow, Target, UWindow)

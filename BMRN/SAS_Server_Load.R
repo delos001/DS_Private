@@ -30,7 +30,7 @@
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## LOAD PACKAGES
-lpkgs = c('haven', 'stringr', 'dplyr', 'tidyr', 'lubridate', 'purrr')
+lpkgs = c('haven', 'stringr', 'dplyr', 'tidyr', 'lubridate', 'purrr', 'fs', 'readr')
 
 # loop through required packages & if not already installed, load, then install
 for(pkg in lpkgs) {
@@ -50,137 +50,105 @@ for(pkg in lpkgs) {
 ##------------------------------------------------------------------------------
 ## LOAD DATA
 
-## update based on save location and file name
 
-SASwd = '\\\\sassysprd.bmrn.com\\cdm\\cdmprd\\'
+## Function 
+    ##  environment: production vs development, vs. quality assurance
+    ##  data folder: string matching folder of interest (DM)
+    ##  study:  list of one or more studies
 
-path1 = 'bmn270\\hemoa\\270301\\csrunblinded\\dataoper\\'
+    ##  blinding:  access blinded or unblinded folders
+    ##  sas labels: yes or no
+    ##  tables: list of tables to load, or "" = all .sas7bdat tables
 
-file1 = 'sv.sas7bdat'     ##subject visit data
-file2 = 'ds.sas7bdat'     ## subject disposition data
-file3 = 'dsic.sas7bdat'   ## informed consent data
-file4 = 'dssh.sas7bdat'   ## previous study history data
-file5 = 'dsss.sas7bdat'   ## screening status
-file6 = 'ie.sas7bdat'     ## eligibility data
-testfile = 'lbf.sas7bdat'
+env = 'PRd'
+envFolder = 'cDm'
+protocol = c('270301', '307201', '331201')
+protocolFolder = 'csr'
+protocolTable = c('dd')
+
+envPath = fs::path(paste0('\\\\sassys', tolower(env), '.bmrn.com'), 
+                   tolower(envFolder),
+                   paste0(tolower(envFolder), tolower(env)))
 
 
+applytest = fs::dir_ls(path = envPath,
+                      regexp = protocol,
+                      type = 'directory',
+                      recurse = 2)
+
+## Specify Paths----------------------------------------------------------------
+## note: pathList1 and pathList2 are same, and no speed benefit noted
+## note: add error handling: if protocol folder = FALSE 
+##            1)print message, 
+##            2) move to next protocol folder
+
+## use lapply to get list of paths
+pathList1 = lapply(protocol, 
+                   function(p) 
+                     fs::path(fs::dir_ls(path = envPath,
+                                         regexp = p,
+                                         type = 'directory',
+                                         recurse = 2),
+                              tolower(protocolFolder), 
+                              'dataoper'))
+
+
+## use loop to get list of paths
+pathList2 = character()
+for (p in protocol) {
+  aPath = fs::dir_ls(path = envPath, 
+                     regexp = p, 
+                     type = 'directory', 
+                     recurse = 2)
+  pathList[p] = fs::path(aPath, tolower(protocolFolder), 'dataoper')
+}
+
+
+## Create File Names------------------------------------------------------------
+
+## example to create list of paths and files to read:  https://stats.idre.ucla.edu/r/codefragments/read_multiple/
+(f = file.path("https://stats.idre.ucla.edu/stat/data", c("auto.dta",
+                                                           "cancer.dta", "efa_cfa.dta", "hsbmar.dta")))
+
+
+lapply(mget(paste0(protocol, protocolTable)), function(x) read_sas(pathlist, paste0(protocolTable, '.sas7bdat')))
+
+
+for (i in 1:length(pathList)) {
+  for (j in protocolTable) {
+    pathTable = fs::path(pathList[i], paste0(protocolTable[j], '.sas7bdat'))
+    paste(names(pathList[i]), protocolTable[j], sep = "_") = read_sas(pathTable)
+  }
+}
+
+dsRaw = read_sas(data_file = paste(mywd, path1, file2, sep = ""), 
+                 .name_repair = 'check_unique')
+fs::dir_ls(envPath)
+
+paste0(pathList[1], paste0(protocolTable[1], '.sas7bdat'))
+paste0(names(pathList[1]), protocolTable[1])
+
+#dir_create(path_norm('C:\Users\ja903976\OneDrive - BioMarin\Desktop\'))
+pwd
+dir_create("C:/Users/ja903976/OneDrive - BioMarin/Desktop/TestFolder")
+file_create("C:/Users/ja903976/OneDrive - BioMarin/Desktop/TestFolder/b.csv")
+link_create(path_abs("C:/Users/ja903976/OneDrive - BioMarin/Desktop/TestFolder"), "c")
+
+path_real("c/b")
+parts = path_split("C:/Users/ja903976/OneDrive - BioMarin/Desktop/TestFolder/b")
+path_abs("..")
+path_split("..")
 ## read data
-svRaw = read_sas(data_file = paste(SASwd, path1, file1, sep = ""), 
-                 .name_repair = 'check_unique')
-
-dsRaw = read_sas(data_file = paste(SASwd, path1, file2, sep = ""), 
-                 .name_repair = 'check_unique')
-
-dsicRaw = read_sas(data_file = paste(SASwd, path1, file3, sep = ""), 
-                   .name_repair = 'check_unique')
-
-dsshRaw = read_sas(data_file = paste(SASwd, path1, file4, sep = ""), 
-                   .name_repair = 'check_unique')
-
-dsssRaw = read_sas(data_file = paste(SASwd, path1, file5, sep = ""), 
-                   .name_repair = 'check_unique')
 
 
-lbfTestRaw = read_sas(data_file = paste(SASwd, path1, testfile, sep = ""), 
+
+lbfTestRaw = read_sas(data_file = paste0(SASwd, path1, testfile), 
                    .name_repair = 'check_unique')
 
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
-## INITIAL DATA FORMATTING
+## Get list of files with .sas7bdat pattern
 
 
-##------------------------------------------------------------------------------
-##------------------------------------------------------------------------------
-## CREATE INTERMEDIATE TABLES--------------------------------------------
-
-## list folderSeq number of visits of interest
-svKeyFolders = c(1, 3, 4, 6, 139)
-
-
-## Table: SVkey
-## summary table: key visits(screening, smrt rscrn, d1, ET)
-svKey = svRaw %>%
-  dplyr::mutate(SVSTDAT_date = as.Date(SVSTDAT, format = '%d-%b-%y')) %>%
-  dplyr::filter(FolderSeq %in% svKeyFolders) %>%
-  dplyr::select(project, Subject, FolderName, SVSTDAT) %>%
-  tidyr::spread(.,FolderName, SVSTDAT)  %>%
-  dplyr::select('project', 'Subject', 'Screening', 
-                'Smart Re-Screening', 'Baseline', 'Day 1', 
-                'Early Termination') %>%
-  dplyr::rename('Smart_Re_Screening' = 'Smart Re-Screening',
-                'Day_1' = 'Day 1',
-                'Early_Termination' = 'Early Termination')  %>%
-  
-  ## join date subject ended study and reason
-  dplyr::left_join(dsRaw[,c('Subject', 'DSSTDAT', 
-                            'DSTERM_COD', 'DSTERMSP')],
-                   by = "Subject") %>%
-  dplyr::rename('Study_Exit_Date' = 'DSSTDAT',
-                'Reason_Subject_Exited_coded' = 'DSTERM_COD',
-                'Reason_Subject_Exited_other' = 'DSTERMSP') %>%
-  ## join ICF data
-  dplyr::left_join(dsicRaw[, c('Subject', 'DSSTDAT', 
-                               'ICRESIDU_COD', 'ICGENTST_COD', 'ICGENEXP_COD',
-                               'DSSCAT', 'DSSCAT_COD')],
-                   by = 'Subject') %>%
-  dplyr::rename('Date_of_ICF' = 'DSSTDAT') %>%
-  ## join previous study data
-  dplyr::left_join(dsshRaw[, c('Subject', 'PSHSTAT', 'PSTUDY', 'PSUBJID')],
-                   by = 'Subject') %>%
-  ## join screening status data
-  dplyr::left_join(dsssRaw[, c('Subject', 'SCRNFAIL_COD', 
-                               'DSTERM', 'DSTERM_COD',
-                               'ENRDAT')],
-                   by = 'Subject') %>%
-  dplyr::rename('Screen_Fail_Reason' = 'DSTERM',
-                'Screen_Fail_Reason_coded' = 'DSTERM_COD')
-
-
-
-
-##------------------------------------------------------------------------------
-##------------------------------------------------------------------------------
-## CREATE PRIMARY TABLES
-
-## SVAnchorData: all key data at beginning and end of study 
-##    counts, min, max visit dates
-svAnchorData = svRaw %>%
-  dplyr::mutate(SVSTDAT_date = as.Date(SVSTDAT, format = '%d-%b-%y')) %>%
-  dplyr::select(Subject, FolderName, SVSTDAT_date, FolderSeq) %>%
-  dplyr::group_by(Subject) %>%
-  
-  ## key visit dates
-  dplyr::summarize(
-    ## most recent visit date (includes unsch)
-    Visit_Date_Latest = max(na.omit(SVSTDAT_date)), 
-    ## visit name for most recent visit (includes unsch visits)
-    Visit_Name_Latest = 
-      na.omit(FolderName[SVSTDAT_date == Visit_Date_Latest])[1],
-    
-    ## visit date for most recent required study visit
-    Visit_Date_Latest_reqd = max(na.omit(SVSTDAT_date[FolderSeq < 139])),
-    ## visit name for most recent required study visit
-    Visit_Name_Latest_reqd = 
-      na.omit(FolderName[FolderSeq < 139 & 
-                           SVSTDAT_date == Visit_Date_Latest_reqd]),
-    .groups = 'keep'
-  ) %>%
-  
-  dplyr::ungroup() %>%
-  
-  ## join key dates table
-  dplyr::left_join(svKey, by = "Subject") %>%
-  
-  dplyr::arrange(Subject, Screening) %>%
-  dplyr::select(project, Subject, PSHSTAT, PSTUDY, PSUBJID,
-                DSSCAT, DSSCAT_COD, Date_of_ICF,
-                ICRESIDU_COD, ICGENTST_COD, ICGENEXP_COD,
-                Screening, Smart_Re_Screening, 
-                SCRNFAIL_COD, Screen_Fail_Reason, Screen_Fail_Reason_coded,
-                Baseline, Day_1, ENRDAT,
-                Early_Termination, Study_Exit_Date,
-                Reason_Subject_Exited_coded, Reason_Subject_Exited_other,
-                Visit_Date_Latest, Visit_Name_Latest, 
-                Visit_Date_Latest_reqd, Visit_Name_Latest_reqd)
+## error handling: if function variables are incorrect, notify with error message
