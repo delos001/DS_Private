@@ -50,31 +50,36 @@ for(pkg in lpkgs) {
 
 ## update based on save location and file name
 
-mywd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
+ACEcdmwd = '\\\\sassysprd.bmrn.com\\cdm\\cdmprd\\'
 
-path1 = 'BMRN270\\270-301\\EDC_SASOnDemand\\'
+ACE270301unblinded = 'bmn270\\hemoa\\270301\\csrunblinded\\dataoper\\'
 
-file1 = 'sv.sas7bdat'     ##subject visit data
-file2 = 'ds.sas7bdat'     ## subject disposition data
-file3 = 'dsic.sas7bdat'   ## informed consent data
-file4 = 'dssh.sas7bdat'   ## previous study history data
-file5 = 'dsss.sas7bdat'   ## screening status
-file6 = 'ie.sas7bdat'     ## eligibility data
+ACEsv = 'sv.sas7bdat'     ##subject visit data
+ACEds = 'ds.sas7bdat'     ## subject disposition data
+ACEdsic = 'dsic.sas7bdat'   ## informed consent data
+ACEdssh = 'dssh.sas7bdat'   ## previous study history data
+ACEdsss = 'dsss.sas7bdat'   ## screening status
+
 
 ## read data
-svRaw = read_sas(data_file = paste(mywd, path1, file1, sep = ""), 
+svRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, ACEsv, 
+                                   sep = ""), 
                  .name_repair = 'check_unique')
 
-dsRaw = read_sas(data_file = paste(mywd, path1, file2, sep = ""), 
+dsRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, ACEds, 
+                                   sep = ""), 
                  .name_repair = 'check_unique')
 
-dsicRaw = read_sas(data_file = paste(mywd, path1, file3, sep = ""), 
+dsicRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, ACEdsic, 
+                                     sep = ""), 
                    .name_repair = 'check_unique')
   
-dsshRaw = read_sas(data_file = paste(mywd, path1, file4, sep = ""), 
+dsshRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, ACEdssh, 
+                                     sep = ""), 
                    .name_repair = 'check_unique')
   
-dsssRaw = read_sas(data_file = paste(mywd, path1, file5, sep = ""), 
+dsssRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, ACEdsss, 
+                                     sep = ""), 
                    .name_repair = 'check_unique')
 
 
@@ -95,10 +100,10 @@ svKeyFolders = c(1, 3, 4, 6, 139)
 ## summary table: key visits(screening, smrt rscrn, d1, ET)
 svKey = svRaw %>%
   dplyr::mutate(SVSTDAT_date = as.Date(SVSTDAT, format = '%d-%b-%y')) %>%
-  dplyr::filter(FolderSeq %in% svKeyFolders) %>%
-  dplyr::select(project, Subject, FolderName, SVSTDAT) %>%
-  tidyr::spread(.,FolderName, SVSTDAT)  %>%
-  dplyr::select('project', 'Subject', 'Screening', 
+  dplyr::filter(FOLDERSEQ %in% svKeyFolders) %>%
+  dplyr::select(PROJECT, SUBJECT, FOLDERNAME, SVSTDAT) %>%
+  tidyr::spread(.,FOLDERNAME, SVSTDAT)  %>%
+  dplyr::select('PROJECT', 'SUBJECT', 'Screening', 
                 'Smart Re-Screening', 'Baseline', 'Day 1', 
                 'Early Termination') %>%
   dplyr::rename('Smart_Re_Screening' = 'Smart Re-Screening',
@@ -106,26 +111,26 @@ svKey = svRaw %>%
                 'Early_Termination' = 'Early Termination')  %>%
   
   ## join date subject ended study and reason
-  dplyr::left_join(dsRaw[,c('Subject', 'DSSTDAT', 
+  dplyr::left_join(dsRaw[,c('SUBJECT', 'DSSTDAT', 
                             'DSTERM_COD', 'DSTERMSP')],
-                   by = "Subject") %>%
+                   by = "SUBJECT") %>%
   dplyr::rename('Study_Exit_Date' = 'DSSTDAT',
                 'Reason_Subject_Exited_coded' = 'DSTERM_COD',
                 'Reason_Subject_Exited_other' = 'DSTERMSP') %>%
   ## join ICF data
-  dplyr::left_join(dsicRaw[, c('Subject', 'DSSTDAT', 
+  dplyr::left_join(dsicRaw[, c('SUBJECT', 'DSSTDAT', 
                                'ICRESIDU_COD', 'ICGENTST_COD', 'ICGENEXP_COD',
                                'DSSCAT', 'DSSCAT_COD')],
-                   by = 'Subject') %>%
+                   by = 'SUBJECT') %>%
   dplyr::rename('Date_of_ICF' = 'DSSTDAT') %>%
   ## join previous study data
-  dplyr::left_join(dsshRaw[, c('Subject', 'PSHSTAT', 'PSTUDY', 'PSUBJID')],
-                   by = 'Subject') %>%
+  dplyr::left_join(dsshRaw[, c('SUBJECT', 'PSHSTAT', 'PSTUDY', 'PSUBJID')],
+                   by = 'SUBJECT') %>%
   ## join screening status data
-  dplyr::left_join(dsssRaw[, c('Subject', 'SCRNFAIL_COD', 
+  dplyr::left_join(dsssRaw[, c('SUBJECT', 'SCRNFAIL_COD', 
                                'DSTERM', 'DSTERM_COD',
                                'ENRDAT')],
-                   by = 'Subject') %>%
+                   by = 'SUBJECT') %>%
   dplyr::rename('Screen_Fail_Reason' = 'DSTERM',
                 'Screen_Fail_Reason_coded' = 'DSTERM_COD')
 
@@ -140,8 +145,8 @@ svKey = svRaw %>%
 ##    counts, min, max visit dates
 svAnchorData = svRaw %>%
   dplyr::mutate(SVSTDAT_date = as.Date(SVSTDAT, format = '%d-%b-%y')) %>%
-  dplyr::select(Subject, FolderName, SVSTDAT_date, FolderSeq) %>%
-  dplyr::group_by(Subject) %>%
+  dplyr::select(SUBJECT, FOLDERNAME, SVSTDAT_date, FOLDERSEQ) %>%
+  dplyr::group_by(SUBJECT) %>%
   
   ## key visit dates
   dplyr::summarize(
@@ -149,13 +154,13 @@ svAnchorData = svRaw %>%
     Visit_Date_Latest = max(na.omit(SVSTDAT_date)), 
     ## visit name for most recent visit (includes unsch visits)
     Visit_Name_Latest = 
-      na.omit(FolderName[SVSTDAT_date == Visit_Date_Latest])[1],
+      na.omit(FOLDERNAME[SVSTDAT_date == Visit_Date_Latest])[1],
     
                        ## visit date for most recent required study visit
-    Visit_Date_Latest_reqd = max(na.omit(SVSTDAT_date[FolderSeq < 139])),
+    Visit_Date_Latest_reqd = max(na.omit(SVSTDAT_date[FOLDERSEQ < 139])),
     ## visit name for most recent required study visit
     Visit_Name_Latest_reqd = 
-      na.omit(FolderName[FolderSeq < 139 & 
+      na.omit(FOLDERNAME[FOLDERSEQ < 139 & 
                            SVSTDAT_date == Visit_Date_Latest_reqd]),
     .groups = 'keep'
     ) %>%
@@ -163,10 +168,10 @@ svAnchorData = svRaw %>%
   dplyr::ungroup() %>%
   
   ## join key dates table
-  dplyr::left_join(svKey, by = "Subject") %>%
+  dplyr::left_join(svKey, by = "SUBJECT") %>%
   
-  dplyr::arrange(Subject, Screening) %>%
-  dplyr::select(project, Subject, PSHSTAT, PSTUDY, PSUBJID,
+  dplyr::arrange(SUBJECT, Screening) %>%
+  dplyr::select(PROJECT, SUBJECT, PSHSTAT, PSTUDY, PSUBJID,
                 DSSCAT, DSSCAT_COD, Date_of_ICF,
                 ICRESIDU_COD, ICGENTST_COD, ICGENEXP_COD,
                 Screening, Smart_Re_Screening, 

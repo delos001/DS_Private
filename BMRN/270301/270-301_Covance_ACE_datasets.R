@@ -1,4 +1,3 @@
-
 # TITLE: 270-301 Covance SAS datasets
 # STUDY: 270-301
 # AUTHOR: Jason Delosh
@@ -17,7 +16,7 @@
 ##------------------------------------------------------------------------------
 ## LOAD PACKAGES
 
-lpkgs = c('haven', 'stringr', 'dplyr', 'tidyr')
+lpkgs = c('haven', 'stringr', 'dplyr', 'tidyr', 'lubridate', 'purrr')
 
 # loop through required packages & if not already installed, load, then install
 for(pkg in lpkgs) {
@@ -37,21 +36,24 @@ for(pkg in lpkgs) {
 ##------------------------------------------------------------------------------
 ## LOAD DATA
 
-mywd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
+## Ace files------
+ACEcdmwd = '\\\\sassysprd.bmrn.com\\cdm\\cdmprd\\'
+ACE270301unblinded = 'bmn270\\hemoa\\270301\\csrunblinded\\dataoper\\'
 
-path1 = 'BMRN270\\270-301\\Covance_Raw\\'
+ACECovance1 = 'lbcovance.sas7bdat'
+ACECovance2 = 'lbcovance_blinded.sas7bdat'
 
 file1 = 'bmn_270301_covance_lab_12oct20.sas7bdat'
 file2 = 'bmn_270301_lb_blnd_fviii_12oct20.sas7bdat'
 
 ## read in files
-covLab_raw = read_sas(data_file = paste(mywd, path1, file1, sep = ""),
-                      .name_repair = 'check_unique')
+lbcovance_raw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
+                                           ACECovance1, sep = ""),
+                         .name_repair = 'check_unique')
 
-
-
-blnd_fviii_raw = read_sas(data_file = paste(mywd, path1, file2, sep = ""),
-                          .name_repair = 'check_unique')
+lbcovance_blinded_raw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
+                                                   ACECovance2, sep = ""),
+                                 .name_repair = 'check_unique')
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
@@ -66,11 +68,11 @@ blnd_fviii_raw = read_sas(data_file = paste(mywd, path1, file2, sep = ""),
 ## CREATE PRIMARY TABLES
 
 ## tag each df with its file source
-covLab = covLab_raw %>%
-  dplyr::mutate(FileSource = 'Covance_Lab_ACE')
+lbcovance = lbcovance_raw %>%
+  dplyr::mutate(FileSource = 'lbcovance')
 
-blnd_fviii = blnd_fviii_raw %>%
-  dplyr::mutate(FileSource = 'Blind_FVIII_ACE')
+lbcovance_blinded = lbcovance_blinded_raw %>%
+  dplyr::mutate(FileSource = 'lbcovance_blinded')
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
@@ -78,11 +80,7 @@ blnd_fviii = blnd_fviii_raw %>%
 
 ## covLab and blnd_fviii are standard format so they are binded here
 ## bind dataframes together
-Covance_ACE_final = covLab %>%
-  dplyr::bind_rows(blnd_fviii) %>%
+Covance_ACE_final = lbcovance %>%
+  dplyr::bind_rows(lbcovance_blinded) %>%
   dplyr::mutate('Results_Present' = ifelse(LBORRES == "" | LBSTAT == "NOT DONE",
                                            'No', 'Yes'))
-
-
-
-

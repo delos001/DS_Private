@@ -36,16 +36,17 @@ for(pkg in lpkgs) {
 ##------------------------------------------------------------------------------
 ## LOAD DATA
 
-mywd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
-path1 = 'BMRN270\\270-301\\Covance_Raw\\'
+localwd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
+path270301covance = 'BMRN270\\270-301\\Covance_Raw\\'
 
-file1 = 'bmn_270301_bloodworks_hla_11Feb2020.csv'
+bwHLAfile = 'bmn_270301_bloodworks_hla_11Feb2020.csv'
 
 
 ## read in files
-bwHLA_raw = read.csv(file.path(paste(mywd, path1, sep = ''), file1), 
-                       sep = ",", skip = 0, header = TRUE,
-                       na.strings = c("", " ", "NA"))
+bwHLA_raw = read.csv(file.path(paste(localwd, path270301covance, sep = ''), 
+                               bwHLAfile), 
+                     sep = ",", skip = 0, header = TRUE,                       
+                     na.strings = c("", " ", "NA"))
 
 
 

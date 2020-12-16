@@ -52,11 +52,11 @@ source('270-301_svSkeleton.R')
 svCompliance = svSkeleton %>%
   
   ## join anchor data to calculate whether visit is expected, late, etc
-  dplyr::left_join(svAnchorData[, c('Subject', 'Screening', 'SCRNFAIL_COD', 
+  dplyr::left_join(svAnchorData[, c('SUBJECT', 'Screening', 'SCRNFAIL_COD', 
                                     'Smart_Re_Screening', 
                                     'Baseline', 'Day_1', 
                                     'Study_Exit_Date')], 
-                   by = 'Subject') %>%
+                   by = 'SUBJECT') %>%
   
   ## derive max date to compare study visit dates (max = exit date or today)
   dplyr::mutate(Study_Exit_or_Today = 
@@ -158,10 +158,10 @@ svCompliance = svSkeleton %>%
   
 
   ## join sv data to get actual visit date data
-  dplyr::left_join(svRaw[, c('Subject',
-                             'instanceId', 'RecordId', 'Folder', 'FolderSeq',
+  dplyr::left_join(svRaw[, c('SUBJECT',
+                             'INSTANCENAME', 'RECORDID', 'FOLDER', 'FOLDERSEQ',
                              'SVSTDAT')],
-                   by = c('Subject', 'OID' = 'Folder')) %>%
+                   by = c('SUBJECT', 'OID' = 'FOLDER')) %>%
   
   ## compare expected to actual visit dates
   dplyr::mutate(
@@ -190,10 +190,10 @@ svCompliance = svSkeleton %>%
   ) %>%
   
   ## select columns to keep in output
-  dplyr::select(Subject, 
-                Parent.Folder, FolderSeq, 
+  dplyr::select(SUBJECT, 
+                Parent.Folder, FOLDERSEQ, 
                 FolderName = FOLDERNAME, 
-                OID, instanceId, RecordId,
+                OID, INSTANCENAME, RECORDID,
                 Screening, Smart_Re_Screening, SCRNFAIL_COD,
                 Baseline, Day_1, Study_Exit_or_Today,
                 Date_of_Visit = SVSTDAT_date,

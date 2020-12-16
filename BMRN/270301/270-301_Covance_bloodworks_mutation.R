@@ -29,17 +29,19 @@ source('270-301_svAnchorData.R')
 ##------------------------------------------------------------------------------
 ## LOAD DATA
 
-mywd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
-path1 = 'BMRN270\\270-301\\Covance_Raw\\'
+## Local files-----
+localwd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
+path270301covance = 'BMRN270\\270-301\\Covance_Raw\\'
 
-file1 = 'BMN 270-301_bloodworks_mutation_11Feb2020.csv'
+bwMutationsfile = 'BMN 270-301_bloodworks_mutation_11Feb2020.csv'
 
 
 ## read in files
 
-bwMutation_raw = read.csv(file.path(paste(mywd, path1, sep = ''), file1), 
-                         sep = ",", skip = 2, header = TRUE,
-                         na.strings = c("", " ", "NA"))
+bwMutations_raw = read.csv(file.path(paste(localwd, path270301covance, sep = ''), 
+                                     bwMutationsfile), 
+                           sep = ",", skip = 2, header = TRUE,
+                           na.strings = c("", " ", "NA"))
 
 
 ##------------------------------------------------------------------------------
@@ -47,18 +49,15 @@ bwMutation_raw = read.csv(file.path(paste(mywd, path1, sep = ''), file1),
 ## DEFINE GLOBAL VARIABLES
 ## bwMutation_raw doesn't contain LBSPID so hard coded from DTS specs here
 
-bwMutation_LBSPID = 
-  data.frame(LBTEST = c('FVIII Genotyping', 
-                        'FVIII Genotyping Inversion Intron 22',
-                        'FVIII Genotyping HGVS Transcript', 
-                        'FVIII Genotyping HGVS Protein'),
-             CovanceName = c('Inversion - Intron 1', 
-                             'Inversion - Intron 22', 
-                             'HGVS Transcript', 
-                             'HGVS Protein'),
-             LBSPID = c(760, 871, 872, 873))
-
-
+bwMutations_LBSPID = data.frame(LBTEST = c('FVIII Genotyping', 
+                                           'FVIII Genotyping Inversion Intron 22',
+                                           'FVIII Genotyping HGVS Transcript', 
+                                           'FVIII Genotyping HGVS Protein'),
+                                CovanceName = c('Inversion - Intron 1', 
+                                                'Inversion - Intron 22', 
+                                                'HGVS Transcript', 
+                                                'HGVS Protein'),
+                                LBSPID = c(760, 871, 872, 873))
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
@@ -96,7 +95,7 @@ bwMutation = bwMutation_raw %>%
   dplyr::mutate(LBSPID = as.character(LBSPID),
                 Results_Present = ifelse(X == 'Tested', 'Yes', 'No'),
                 PROJECT = '270301',
-                FileSource = 'BloodWords_Mutation',
+                FileSource = 'bwMutations',
                 LBDAT = as.Date('Date.of.Collection', format = '%d-%b-%y')) %>%
   
   ## select and rename columns to match covLab and blnd_fviii
@@ -122,7 +121,7 @@ subjCompareMut = bwMutation %>%
   unique() %>%
   dplyr::anti_join(svAnchorData[, c('Subject')], 
                    by = c('SUBJECT' = 'Subject')) %>%
-  dplyr::mutate(FileSource = 'BloodWords_Mutation Works') %>%
+  dplyr::mutate(FileSource = 'bwMutations') %>%
   
   ## then look up subject number in Covance data set to get 'correct' subject ID
   dplyr::left_join(Covance_ACE_final[, c('SUBJECT', 'LBREFID')], 
