@@ -1,5 +1,5 @@
 
-# TITLE: Study Visit Data
+# TITLE: Study Visit Compliance
 # STUDY: 270-301
 # AUTHOR: Jason Delosh
 # DATE: 24Sep2020
@@ -32,7 +32,6 @@ for(pkg in lpkgs) {
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## LOAD PARENT SCRIPTS
-source('270-301_svAnchorData.R')
 source('270-301_svSkeleton.R')
 
 ##------------------------------------------------------------------------------
@@ -209,8 +208,8 @@ svCompliance = svSkeleton %>%
 
 ## write to local if needed
 
-write.csv(svCompliance, 
-          file.path('C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\', 
-                                  'svCompliance.csv'), row.names = FALSE)
+# write.csv(svCompliance, 
+#           file.path('C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\', 
+#                                   'svCompliance.csv'), row.names = FALSE)
 
 

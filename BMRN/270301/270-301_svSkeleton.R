@@ -64,7 +64,7 @@ RRSCFRaw = read.csv(file.path(paste(localwd, path270301, sep = ''),
 
 ## create subset of forms: only required study visit forms
 rqdForms = RRSCFRaw %>%
-  ## SAS output has hidden character ".' at end of visit names in Name col
+  ## SAS to csv output has hidden char ".' at end of visit names in Name col
   dplyr::mutate(Name = gsub("[^\x20-\x7E]", "", Name),
                 id = 1) %>%  ## id used to join later
   dplyr::rename(FOLDERNAME = Name)

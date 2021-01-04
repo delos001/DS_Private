@@ -43,9 +43,6 @@ ACE270301unblinded = 'bmn270\\hemoa\\270301\\csrunblinded\\dataoper\\'
 ACECovance1 = 'lbcovance.sas7bdat'
 ACECovance2 = 'lbcovance_blinded.sas7bdat'
 
-file1 = 'bmn_270301_covance_lab_12oct20.sas7bdat'
-file2 = 'bmn_270301_lb_blnd_fviii_12oct20.sas7bdat'
-
 ## read in files
 lbcovance_raw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
                                            ACECovance1, sep = ""),
@@ -84,3 +81,4 @@ Covance_ACE_final = lbcovance %>%
   dplyr::bind_rows(lbcovance_blinded) %>%
   dplyr::mutate('Results_Present' = ifelse(LBORRES == "" | LBSTAT == "NOT DONE",
                                            'No', 'Yes'))
+

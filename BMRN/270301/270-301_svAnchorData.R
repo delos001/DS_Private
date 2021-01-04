@@ -92,7 +92,7 @@ dsssRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, ACEdsss,
 ##------------------------------------------------------------------------------
 ## CREATE INTERMEDIATE TABLES--------------------------------------------
 
-## list folderSeq number of visits of interest
+## list folderSeq number of visits of interest (scr, rescr, bl, d1, ET)
 svKeyFolders = c(1, 3, 4, 6, 139)
 
 
