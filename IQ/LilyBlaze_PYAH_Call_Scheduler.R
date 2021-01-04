@@ -36,8 +36,7 @@ trialpath = 'PYAH/ReceivedFiles/'
 ## Visit Data file 
 vdName = "_Current_PYAH_Patient_Visit_Date"                                     #this is the visit data file name
 vdExt = '.xlsx'                                                                 #this is the visit data extension
-vdSheet = 'Patient Status Report_EXCEL'                                         #this is the sheet name containing the visit data
-
+vdSheet = 'Patient Status Report_EXCEL'
 
 ## Zip Code file-------------------------------------------------------
 ##    shared with pyab study
@@ -73,7 +72,7 @@ saveExt <- '.csv'                                                               
 VisitDate_df = read_excel(paste(rootpath, trialpath,
                           vdName, 
                           vdExt, sep = ""), 
-                    sheet = 1,
+                    sheet = vdSheet,
                     na = "*!*") %>%
   data.frame()
 
