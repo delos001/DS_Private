@@ -1,0 +1,195 @@
+---
+title: "ToplineCompare_Analysis_LABCOVANCE"
+author: "Jason Delosh"
+date: "1/22/2021"
+output: 
+  html_document:
+    toc: yes
+    toc_float: true
+    highlight: zenburn
+    theme: united
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS = TRUE)
+
+library(knitr); library(kableExtra); library(ggplot2)
+```
+
+## **Introduction**
+
+On 21Dec2020, a topline snapshot was performed for the 270-301 study.  To appropriately monitor any changes to the data included in that snapshot, clinical programming compares data from 21Dec2020 to current data and reports changes via a 'snapshot_compare' report.  The purpose of this analysis is to explore identified changes associated with Covance lab data.
+
+### **Source Scripts**
+'270-301_SnapshotCompare_Analysis.R'
+```{r, include=FALSE}
+source('270-301_SnapshotCompare_Analysis.R', local = knitr::knit_global())
+```
+
+### **Inputs:**
+
+* `r file1`
+  * Sheet = LBCOVANCE
+  
+
+
+
+
+### **Summary**
+
+The Clinical Programming input report used for this analysis identifies changes for `r dim(LBCOVANCE_snap_raw)[1]` samples.  Two types or changes were observed: (`r unique(LBCOVANCEBase$status)`) producing `r dim(LBCOVANCE_join)[1]` changes that impact `r length(unique(LBCOVANCE_join$VARIABLE))` lab variables shown below in Table 2.
+
+```{r, echo=FALSE}
+kable(addmargins(table(LBCOVANCE_snap_raw$status)), caption = 'Table 1: Change Types',
+      format = 'html', table.attr = "style='width:30%;'",
+      col.names = c("Variable", "Freq")) %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = T, position = 'center',)
+      
+```
+Table 2 reflects the frequency of changes by variable.  Notably, some variables are correlative in function.  For example, lab date and time changes would occur simultaneously.  Also recall that NA in the Variable column represents "deleted" items, discussed above.
+```{r, echo=FALSE}
+var_cnt = LBCOVANCE_join %>%
+  dplyr::count(VARIABLE) %>%
+  dplyr::arrange(desc(n))
+  
+kable(var_cnt, caption = 'Table 2: Variable Frequency of Changes',
+      format = 'html', table.attr = "style='width:30%;'",
+      col.names = c("Variable", "Freq")) %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = T, position = 'center',)
+      
+```
+
+### **Deleted Tests**
+
+There were `r table(LBCOVANCE_snap_raw$status)[1]` deleted samples. Figure 1 shows the reason for deletion is not documented for over half of the entries.
+
+del_only = LBCOVANCE_snap_raw %>%
+```{r, echo=FALSE}
+del_only = LBCOVANCE_snap_raw %>%
+  dplyr::filter(status == 'Deleted')
+  #dplyr::select(Category.for.Lab.Test, status)
+
+ggplot(del_only, aes(x = Category.for.Lab.Test, 
+                     fill = Reason.Test.Not.Done)) + 
+  geom_bar() + 
+
+  geom_text(aes(label = ..count..),
+            stat = 'count',
+            position = position_stack(vjust = 0.5)) +
+  scale_x_discrete(labels = function(x) lapply(strwrap(x, 
+                                                       width = 30, 
+                                                       simplify = FALSE), 
+                                               paste, 
+                                               collapse = "\n")) +
+  
+  ggtitle(label = 'Figure 1: Reason Test Not Done for Deleted Tests') +
+  labs(x = 'Lab Test Category',
+       y = 'Frequency',
+       fill = 'Reason Test Not Done') +
+  
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1))
+  
+```
+
+
+For deleted tests where there is no reason for deletion provided
+
+```{r, echo=FALSE}
+del_only = LBCOVANCE_snap_raw %>%
+  dplyr::filter(status == 'Deleted') %>%
+  dplyr::filter(is.na(Reason.Test.Not.Done))
+  #dplyr::select(Category.for.Lab.Test, status)
+
+ggplot(del_only, aes(x = Category.for.Lab.Test, 
+                     fill = Visit.Name)) + 
+  geom_bar() + 
+
+  geom_text(aes(label = ..count..),
+            stat = 'count',
+            position = position_stack(vjust = 0.5)) +
+  scale_x_discrete(labels = function(x) lapply(strwrap(x, 
+                                                       width = 30, 
+                                                       simplify = FALSE), 
+                                               paste, 
+                                               collapse = "\n")) +
+  
+  ggtitle(label = 'Figure 2: Tests Deleted with No Reason') +
+  labs(x = 'Test Cateogry',
+       y = 'Frequency',
+       fill = 'Visit Name') +
+  
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+```
+
+
+```{r, echo=FALSE}
+del_only = LBCOVANCE_snap_raw %>%
+  dplyr::filter(status == 'Deleted') %>%
+  dplyr::filter(is.na(Reason.Test.Not.Done)) %>%
+  dplyr::group_by(Category.for.Lab.Test) %>%
+  dplyr::count(Test.Name)
+
+kable(del_only, caption = 'Table 3: Deleted Tests with No Reason for Deletion',
+      format = 'html', table.attr = "style='width:100%;'",) %>%
+      column_spec(column = 1, width = '3in') %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = F, position = 'center',)
+```
+Missing tests counts range from `r min(del_only$n)` to `r max(del_only$n)` across `r length(unique(del_only$Test.Name))` tests and based on initial review, appear to have no pattern that would assume not-at-random deletion.
+
+
+### **Update: Lab Date**
+
+Lab dates 
+```{r, echo=FALSE}
+lbdate_only_pivot = LBCOVANCE_join %>%
+  dplyr::filter(VARIABLE == 'LBRESDAT') %>%
+  tidyr::pivot_longer(cols = c('VALUE', 'VALUE_new'), names_to = 'VALUE_pt') %>%
+  dplyr::mutate(LBRESDAT = as.Date(value, format = '%d%B%Y')) %>%
+    dplyr::arrange(Subject.ID, Visit.Name, Sample.Collection.Date, Test.Short.Name,
+                 VALUE_pt) %>%
+  dplyr::group_by(Subject.ID, Specimen.identifier, Sample.Collection.Date, Test.Short.Name) %>%
+  dplyr::mutate(grpInd = group_indices())
+
+
+ggplot(lbdate_only_pivot, aes(x = VALUE_pt,
+                                y =  LBRESDAT,
+                                group = grpInd)) + 
+  geom_line() + 
+  
+  scale_y_date(date_labels = '%Y-%b', date_breaks = 'month') +
+  
+  ggtitle(label = 'Change of Results Date') +
+  labs(x = 'Original vs New Data Sets',
+       y = 'Lab Sample Results Date') +
+  
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+
+```{r, echo=FALSE}
+lbdate_only = LBCOVANCE_join %>%
+  dplyr::filter(VARIABLE == 'LBRESDAT') %>%
+  dplyr::mutate(VALUE = as.Date(VALUE, format = '%d%B%Y'),
+                VALUE_new = as.Date(VALUE_new, format = '%d%B%Y'))
+
+
+lbdate_only_pivot = LBCOVANCE_join %>%
+  dplyr::filter(VARIABLE == 'LBRESDAT') %>%
+  tidyr::pivot_longer(cols = c('VALUE', 'VALUE_new'), names_to = 'VALUE_pt') %>%
+  dplyr::mutate(LBRESDAT = as.Date(value, format = '%d%B%Y')) %>%
+    dplyr::arrange(Subject.ID, Visit.Name, Sample.Collection.Date, Test.Short.Name,
+                 VALUE_pt) %>%
+  dplyr::group_by(Subject.ID, Sample.Collection.Date, Test.Short.Name) %>%
+  dplyr::mutate(runningtot = seq(n()))
+```

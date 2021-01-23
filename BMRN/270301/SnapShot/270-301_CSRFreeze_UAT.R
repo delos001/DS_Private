@@ -44,22 +44,26 @@ source('270-301_svCompliance.R')
 ACEcdmwd = '\\\\sassysprd.bmrn.com\\cdm\\cdmprd\\'
 ACE270301unblinded = 'bmn270\\hemoa\\270301\\csrunblinded\\dataoper\\'
 
-## update path
-##\\sassysprd.bmrn.com\cdm\cdmdev\bmn270\hemoa\270301\csrunblinded\output\clin\archive\csr_data
+
+
 
 ## read files----------------------------------------
 ##    *note: the following files are read in with parent scripts 
-##            dssh, sv
+##            dssh, sv so need to re-run here then reren parent script without
+##            loading data from that script
 
+dsshRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
+                                     'dssh.sas7bdat', sep = ""), 
+                   .name_repair = 'check_unique')
 dssfRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
                                  'dssf.sas7bdat', sep = ""), 
                .name_repair = 'check_unique')
 egRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
                                      'eg.sas7bdat', sep = ""), 
                    .name_repair = 'check_unique')
-fafsRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
-                                 'fafs.sas7bdat', sep = ""), 
-               .name_repair = 'check_unique')
+# fafsRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
+#                                  'fafs.sas7bdat', sep = ""), 
+#                .name_repair = 'check_unique')
 falbRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
                                      'falb.sas7bdat', sep = ""), 
                    .name_repair = 'check_unique')
@@ -133,8 +137,8 @@ srsRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded,
                                  'srs.sas7bdat', sep = ""), 
                .name_repair = 'check_unique')
 svRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
-                                 'sv.sas7bdat', sep = ""), 
-               .name_repair = 'check_unique')
+                                    'sv.sas7bdat', sep = ""), 
+                  .name_repair = 'check_unique')
 vsRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded, 
                                    'vs.sas7bdat', sep = ""), 
                  .name_repair = 'check_unique')
@@ -144,8 +148,9 @@ vsRaw = read_sas(data_file = paste(ACEcdmwd, ACE270301unblinded,
 ##------------------------------------------------------------------------------
 ## WRITE DATA
 
-rtpth = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\BMRN270\\'
-chpth = '270-301\\CSRFreeze\\writeRfiles\\'
+
+rtpth = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\'
+chpth = 'Desktop\\Studies\\BMRN270\\270-301\\CSRFreeze\\writeRfiles\\'
 outloc = paste0(rtpth, chpth)
 
 
@@ -187,18 +192,21 @@ svComp_Nov = svCompliance %>%
 
 
 ## Create completed study visit list, for each subject, in collapsed format
-svComp_coll = svCompliance %>%
-  dplyr::arrange(SUBJECT, FOLDERSEQ, Date_of_Visit) %>%
-  dplyr::filter(Data_Entry_Expected == 'Yes' & Visit_Missing == 'No') %>%
-  dplyr::filter(Date_of_Visit <= cutoffDate) %>%
-  dplyr::select(SUBJECT, OID) %>%
+svComp_coll = svRaw %>%
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'OID', 'UWindow_Date')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>%
+  dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
+  dplyr::arrange(SUBJECT, FOLDER) %>%
+  dplyr::filter((is.na(SVSTDAT) & SVND == 1 & UWindow_Date <= cutoffDate) | SVSTDAT <= cutoffDate) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
   unique() %>%
   dplyr::group_by(SUBJECT) %>%
-  dplyr::summarise(OIDList = paste0(OID, collapse = ', '))
+  dplyr::summarise(FOLDERlist = paste0(FOLDER, collapse = ','))
 
 
-# write.csv(svComp_coll, 
-#           file.path(outloc, 'svComp_coll.csv'), row.names = FALSE)
+write.csv(svComp_coll,
+          file.path(outloc, 'svComp_coll.csv'), row.names = FALSE)
 
 
 ##-------------------------------------------------------------------
@@ -212,8 +220,13 @@ dssf = dssfRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
-  dplyr::select(SUBJECT) %>% unique() %>%
+  dplyr::select(SUBJECT, FOLDER) %>% unique() %>%
   dplyr::arrange(SUBJECT)
+
+write.csv(dssf,
+            file.path(outloc, 'dssf.csv'), row.names = FALSE)
+write.csv(dssfRaw,
+          file.path(outloc, 'dssfRaw.csv'), row.names = FALSE)
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -223,16 +236,63 @@ dssh = dsshRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
-  dplyr::select(SUBJECT) %>% unique() %>%
+  dplyr::select(SUBJECT, FOLDER) %>% unique() %>%
   dplyr::arrange(SUBJECT)
+
+write.csv(dsshRaw,
+          file.path(outloc, 'dsshRaw.csv'), row.names = FALSE)
+write.csv(dssh,
+          file.path(outloc, 'dssh.csv'), row.names = FALSE)
+
+
+##-------------------------------------------------------------------
+##-------------------------------------------------------------------
+## Previous Study History
+eg = egRaw %>%
+  ## filter out locked sites
+  dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  dplyr::filter(FOLDER == 'UNS') %>%
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  dplyr::filter(EGDAT <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, EGDAT) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+
+write.csv(egRaw,
+          file.path(outloc, 'egRaw.csv'), row.names = FALSE)
+write.csv(eg,
+          file.path(outloc, 'eg.csv'), row.names = FALSE)
+  
   
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
 ## Fibroscan
-fafs = fafsRaw %>%  ## there is no data, no need to program
+fafs = fafsRaw  ## there is no data, no need to program
   ## filter out locked sites
   # dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   # dplyr::filter(!SiteNumber %in% lockList)
+
+##-------------------------------------------------------------------
+##-------------------------------------------------------------------
+## Liver biopsy
+falba = falbaRaw %>%
+  ## filter out locked sites
+  dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  #dplyr::filter(FADAT <= Date_of_Visit) %>%   ## dates not entered for this form
+  dplyr::arrange(SUBJECT, FOLDERSEQ, FADAT) %>%
+  dplyr::select(SUBJECT, FOLDER)
+
+write.csv(falbaRaw,
+          file.path(outloc, 'falbaRaw.csv'), row.names = FALSE)
+write.csv(falba,
+          file.path(outloc, 'falba.csv'), row.names = FALSE)
     
 
 ##-------------------------------------------------------------------
@@ -246,8 +306,14 @@ falb = falbRaw %>%
   dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
                    by = 'SUBJECT') %>%
   dplyr::filter(FADAT <= Date_of_Visit) %>%
-  dplyr::select(SUBJECT, FOLDERSEQ, FOLDER, FADAT) %>%
-  dplyr::arrange(SUBJECT, FOLDERSEQ, FADAT)
+  dplyr::arrange(SUBJECT, FOLDERSEQ, FADAT) %>%
+  dplyr::select(SUBJECT, FOLDER)
+
+write.csv(falbRaw,
+          file.path(outloc, 'falbRaw.csv'), row.names = FALSE)
+write.csv(falb,
+          file.path(outloc, 'falb.csv'), row.names = FALSE)
+  
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -260,8 +326,14 @@ falm = falmRaw %>%
   dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
                    by = 'SUBJECT') %>%
   dplyr::filter(FADAT <= Date_of_Visit) %>%
-  dplyr::select(SUBJECT, FOLDERSEQ, FOLDER, FADAT) %>%
-  dplyr::arrange(SUBJECT, FOLDERSEQ, FADAT)
+  dplyr::arrange(SUBJECT, FOLDER) %>%
+  dplyr::select(SUBJECT, FOLDER)
+  
+
+write.csv(falmRaw,
+          file.path(outloc, 'falmRaw.csv'), row.names = FALSE)
+write.csv(falm,
+          file.path(outloc, 'falm.csv'), row.names = FALSE)
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -271,13 +343,18 @@ ie = ieRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
-  dplyr::select(SUBJECT, FOLDERSEQ, FOLDER) %>% unique() %>%
-  dplyr::arrange(SUBJECT)
+  dplyr::arrange(SUBJECT, FOLDERSEQ) %>%
+  dplyr::select(SUBJECT, FOLDER) %>% 
+  unique()
   
-  ## ********Note that subject 1733-3924 has two lines for screening***********
   # dplyr::select(SUBJECT, FOLDER) %>%
   # dplyr::group_by(SUBJECT) %>%
   # dplyr::filter(n() > 1)
+
+write.csv(ieRaw,
+          file.path(outloc, 'ieRaw.csv'), row.names = FALSE)
+write.csv(ie,
+          file.path(outloc, 'ie.csv'), row.names = FALSE)
   
 
 ##-------------------------------------------------------------------
@@ -288,17 +365,31 @@ lbc = lbcRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## some entries are missing dates: this pulls date from Instance name
+  dplyr::mutate(InstanceDate = as.Date(gsub(".*-", "", INSTANCENAME), 
+                                       format = '%d %b %Y'),
+                StartDateFix = as.Date(ifelse(is.na(LBDAT), 
+                                              as.Date(InstanceDate), 
+                                              as.Date(LBDAT)), 
+                                       origin = "1970-01-01"),
+                ND_exception = ifelse(LBSTAT == 0 & is.na(LBDAT), 1, 0)) %>%
+  ## filter where lbdat is not entered AND not done is not checked
+  dplyr::filter(ND_exception == 0) %>%
+  
   ## join last visit date <= 16Nov20
   dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
                    by = 'SUBJECT') %>%
-  dplyr::filter(LBDAT <= Date_of_Visit) %>%
+  dplyr::filter(StartDateFix <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, StartDateFix) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
   
-  dplyr::select(SUBJECT, FOLDERSEQ, FOLDER, LBDAT) %>%
-  dplyr::arrange(SUBJECT, FOLDERSEQ, LBDAT)
+write.csv(lbcRaw,
+          file.path(outloc, 'lbcRaw.csv'), row.names = FALSE)
+write.csv(lbc,
+          file.path(outloc, 'lbc.csv'), row.names = FALSE)
   
   
-  
-
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
 ## Coagulation
@@ -307,13 +398,29 @@ lbcg = lbcgRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## some entries are missing dates: this pulls date from Instance name
+  dplyr::mutate(InstanceDate = as.Date(gsub(".*-", "", INSTANCENAME), 
+                                       format = '%d %b %Y'),
+                StartDateFix = as.Date(ifelse(is.na(LBDAT), 
+                                              as.Date(InstanceDate), 
+                                              as.Date(LBDAT)), 
+                                       origin = "1970-01-01"),
+                ND_exception = ifelse(LBND == 0 & is.na(LBDAT), 1, 0)) %>%
+  ## filter where lbdat is not entered AND not done is not checked
+  dplyr::filter(ND_exception == 0) %>%
+  
   ## join last visit date <= 16Nov20
   dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
                    by = 'SUBJECT') %>%
-  dplyr::filter(LBDAT <= Date_of_Visit) %>%
-  
-  dplyr::select(SUBJECT, FOLDERSEQ, FOLDER, LBDAT) %>%
-  dplyr::arrange(SUBJECT, FOLDERSEQ, LBDAT)
+  dplyr::filter(StartDateFix <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, StartDateFix) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+
+write.csv(lbgRaw,
+          file.path(outloc, 'lbgRaw.csv'), row.names = FALSE)
+write.csv(lbg,
+          file.path(outloc, 'lbg.csv'), row.names = FALSE)
   
 
 ##-------------------------------------------------------------------
@@ -324,13 +431,29 @@ lbh = lbhRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## some entries are missing dates: this pulls date from Instance name
+  dplyr::mutate(InstanceDate = as.Date(gsub(".*-", "", INSTANCENAME), 
+                                       format = '%d %b %Y'),
+                StartDateFix = as.Date(ifelse(is.na(LBDAT), 
+                                              as.Date(InstanceDate), 
+                                              as.Date(LBDAT)), 
+                                       origin = "1970-01-01"),
+                ND_exception = ifelse(LBSTAT == 0 & is.na(LBDAT), 1, 0)) %>%
+  ## filter where lbdat is not entered AND not done is not checked
+  dplyr::filter(ND_exception == 0) %>%
+  
   ## join last visit date <= 16Nov20
   dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
                    by = 'SUBJECT') %>%
-  dplyr::filter(LBDAT <= Date_of_Visit) %>%
-  
-  dplyr::select(SUBJECT, FOLDERSEQ, FOLDER, LBDAT) %>%
-  dplyr::arrange(SUBJECT, FOLDERSEQ, LBDAT)
+  dplyr::filter(StartDateFix <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, StartDateFix) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+
+write.csv(lbhRaw,
+          file.path(outloc, 'lbhRaw.csv'), row.names = FALSE)
+write.csv(lbh,
+          file.path(outloc, 'lbh.csv'), row.names = FALSE)
   
 
 ##-------------------------------------------------------------------
@@ -341,6 +464,30 @@ lbu = lbuRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## some entries are missing dates: this pulls date from Instance name
+  dplyr::mutate(InstanceDate = as.Date(gsub(".*-", "", INSTANCENAME), 
+                                       format = '%d %b %Y'),
+                StartDateFix = as.Date(ifelse(is.na(LBDAT), 
+                                              as.Date(InstanceDate), 
+                                              as.Date(LBDAT)), 
+                                       origin = "1970-01-01"),
+                ND_exception = ifelse(LBSTAT == 0 & is.na(LBDAT), 1, 0)) %>%
+  ## filter where lbdat is not entered AND not done is not checked
+  dplyr::filter(ND_exception == 0) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  dplyr::filter(StartDateFix <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, StartDateFix) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+
+write.csv(lbuRaw,
+          file.path(outloc, 'lbuRaw.csv'), row.names = FALSE)
+write.csv(lbu,
+          file.path(outloc, 'lbu.csv'), row.names = FALSE)
+  
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -350,6 +497,30 @@ lbv = lbvRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## some entries are missing dates: this pulls date from Instance name
+  dplyr::mutate(InstanceDate = as.Date(gsub(".*-", "", INSTANCENAME), 
+                                       format = '%d %b %Y'),
+                StartDateFix = as.Date(ifelse(is.na(LBDAT), 
+                                              as.Date(InstanceDate), 
+                                              as.Date(LBDAT)), 
+                                       origin = "1970-01-01"),
+                ND_exception = ifelse(LBSTAT == 0 & is.na(LBDAT), 1, 0)) %>%
+  
+  ## filter where lbdat is not entered AND not done is not checked
+  dplyr::filter(ND_exception == 0) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  dplyr::filter(StartDateFix <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, StartDateFix) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+  
+write.csv(lbvRaw,
+          file.path(outloc, 'lbvRaw.csv'), row.names = FALSE)
+write.csv(lbv,
+          file.path(outloc, 'lbv.csv'), row.names = FALSE)
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -358,6 +529,15 @@ mnyn = mnynRaw %>%
   ## filter out locked sites
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  dplyr::arrange(SUBJECT, FOLDERSEQ) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+
+write.csv(mnynRaw,
+          file.path(outloc, 'mnynRaw.csv'), row.names = FALSE)
+write.csv(mnyn,
+          file.path(outloc, 'mnyn.csv'), row.names = FALSE)
   
 
 ##-------------------------------------------------------------------
@@ -368,6 +548,23 @@ mou = mouRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::mutate(StartDateFix = as.Date(ifelse(is.na(MODAT), 
+                                              as.Date(RECORDDATE), 
+                                              as.Date(MODAT)),
+                                       origin = '1970-01-01')) %>%
+  dplyr::filter(StartDateFix <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, StartDateFix) %>%
+  dplyr::select(SUBJECT, FOLDER)
+
+write.csv(mouRaw,
+          file.path(outloc, 'mouRaw.csv'), row.names = FALSE)
+write.csv(mou,
+          file.path(outloc, 'mou.csv'), row.names = FALSE)
+  
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -376,6 +573,21 @@ pr = prRaw %>%
   ## filter out locked sites
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(!is.na(PRENDAT)) %>%
+  dplyr::filter(PRENDAT <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, PRENDAT) %>%
+  dplyr::select(SUBJECT, FOLDER, PRENDAT) %>%
+  unique()
+
+write.csv(prRaw,
+          file.path(outloc, 'prRaw.csv'), row.names = FALSE)
+write.csv(pr,
+          file.path(outloc, 'pr.csv'), row.names = FALSE)
   
 
 ##-------------------------------------------------------------------
@@ -386,6 +598,15 @@ pregfu = pregfuRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  dplyr::filter(PREGTERM == 'Yes' | !is.na(DELIVDAT)) %>%
+  dplyr::arrange(SUBJECT, FOLDER) %>%
+  dplyr::select(SUBJECT, FOLDER)
+
+write.csv(pregfuRaw,
+          file.path(outloc, 'pregfuRaw.csv'), row.names = FALSE)
+write.csv(pregfu,
+          file.path(outloc, 'pregfu.csv'), row.names = FALSE)
+  
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -394,6 +615,14 @@ prgrpt = prgrptRaw %>%
   ## filter out locked sites
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  dplyr::arrange(SUBJECT, FOLDER) %>%
+  dplyr::select(SUBJECT, FOLDER)
+
+write.csv(prgrptRaw,
+          file.path(outloc, 'prgrptRaw.csv'), row.names = FALSE)
+write.csv(prgrpt,
+          file.path(outloc, 'prgrpt.csv'), row.names = FALSE)
   
 
 ##-------------------------------------------------------------------
@@ -404,6 +633,18 @@ qsem = qsemRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  dplyr::filter(!is.na(WSDAT)) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(WSDAT <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, WSDAT) %>%
+  dplyr::select(SUBJECT, FOLDER)  %>%
+  unique()
+  
+  
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -412,6 +653,17 @@ qseq = qseqRaw %>%
   ## filter out locked sites
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  dplyr::filter(!is.na(QSDAT)) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(QSDAT <= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, QSDAT) %>%
+  dplyr::select(SUBJECT, FOLDER)  %>%
+  unique()
   
 
 ##-------------------------------------------------------------------
@@ -422,6 +674,27 @@ qshal = qshalRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## join visit date to account for missing dates (when questionnaire not done)
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'Date_of_Visit',
+                                    'Study_Exit_or_Today', 'OID')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>% 
+  
+  ## acount for missing dates
+  dplyr::mutate(QSDAT_fix = as.Date(ifelse(is.na(QSDAT), 
+                                           Date_of_Visit, QSDAT),
+                                    origin = '1970-01-01')) %>%
+  dplyr::select(-Date_of_Visit) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(((FOLDER == 'ET' & 
+                    Study_Exit_or_Today <= cutoffDate) | 
+                   QSDAT_fix <= Date_of_Visit) & !is.na(QSYN)) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, QSDAT) %>%
+  dplyr::select(SUBJECT, FOLDER)
+  
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -430,6 +703,22 @@ qshal2 = qshal2Raw %>%
   ## filter out locked sites
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  ## join visit date to account for missing dates (when questionnaire not done)
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'Date_of_Visit',
+                                    'Study_Exit_or_Today', 'OID')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>% 
+  dplyr::rename(QSDAT_fix = Date_of_Visit) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit')],
+                   by = 'SUBJECT') %>%
+
+  dplyr::filter(((FOLDER == 'ET' & 
+                    Study_Exit_or_Today <= cutoffDate) | 
+                   QSDAT_fix <= Date_of_Visit) & !is.na(QSYN)) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, QSDAT_fix) %>%
+  dplyr::select(SUBJECT, FOLDER)
   
 
 ##-------------------------------------------------------------------
@@ -440,6 +729,27 @@ qsprobe = qsprobeRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## join visit date to account for missing dates (when questionnaire not done)
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'Date_of_Visit',
+                                    'Study_Exit_or_Today', 'OID')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>% 
+
+  ## acount for missing dates
+  dplyr::mutate(QSDAT_fix = as.Date(ifelse(is.na(QSDAT), 
+                                           Date_of_Visit, QSDAT),
+                                    origin = '1970-01-01')) %>%
+  dplyr::select(-Date_of_Visit) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(((FOLDER == 'ET' & 
+                    Study_Exit_or_Today <= cutoffDate) | 
+                   QSDAT_fix <= Date_of_Visit) & !is.na(QSYN)) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, QSDAT) %>%
+  dplyr::select(SUBJECT, FOLDER)
+  
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -449,7 +759,25 @@ qsprobe2 = qsprobe2Raw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
-
+  ## join visit date to account for missing dates (when questionnaire not done)
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'Date_of_Visit',
+                                    'Study_Exit_or_Today', 'OID')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>% 
+  
+  dplyr::rename(QSDAT_fix = Date_of_Visit) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(((FOLDER == 'ET' & 
+                    Study_Exit_or_Today <= cutoffDate) | 
+                   QSDAT_fix <= Date_of_Visit) & !is.na(QSYN)) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, QSDAT_fix) %>%
+  dplyr::select(SUBJECT, FOLDER)
+  
+  
+ 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
 ## Haemo-QoL-A Quality of Life
@@ -457,6 +785,27 @@ qsqol = qsqolRaw %>%
   ## filter out locked sites
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  ## join visit date to account for missing dates (when questionnaire not done)
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'Date_of_Visit',
+                                    'Study_Exit_or_Today', 'OID')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>% 
+  
+  dplyr::mutate(QSDAT_fix = as.Date(ifelse(is.na(QSDAT), as.Date(Date_of_Visit),
+                                           as.Date(QSDAT)), 
+                                    origin = '1970-01-01')) %>%
+  dplyr::select(-Date_of_Visit) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(((FOLDER == 'ET' & 
+                    Study_Exit_or_Today <= cutoffDate) | 
+                   QSDAT_fix <= Date_of_Visit) & !is.na(QSYN)) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, QSDAT_fix) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
   
 
 ##-------------------------------------------------------------------
@@ -467,6 +816,31 @@ qswpai = qswpaiRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## join visit date to account for missing dates (when questionnaire not done)
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'Date_of_Visit',
+                                    'Study_Exit_or_Today', 'OID')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>% 
+  
+  dplyr::mutate(QSDAT_fix = as.Date(ifelse(FOLDER == 'ET', 
+                                           as.Date(Study_Exit_or_Today),
+                                      ifelse(is.na(QSDAT), 
+                                             as.Date(Date_of_Visit),
+                                             as.Date(QSDAT))), 
+                                    origin = '1970-01-01')) %>%
+  dplyr::select(-Date_of_Visit) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(((FOLDER == 'ET' & 
+                    Study_Exit_or_Today <= cutoffDate) | 
+                   QSDAT_fix <= Date_of_Visit) & !is.na(QSYN)) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, QSDAT_fix) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+  
+  
 
 ##-------------------------------------------------------------------
 ##-------------------------------------------------------------------
@@ -475,6 +849,16 @@ srs = srsRaw %>%
   ## filter out locked sites
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  dplyr::filter(!is.na(SRSYN)) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, SRSYN) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+
+write.csv(srsRaw,
+          file.path(outloc, 'srsRaw.csv'), row.names = FALSE)
+write.csv(srs,
+          file.path(outloc, 'srs.csv'), row.names = FALSE)
   
 
 ##-------------------------------------------------------------------
@@ -485,9 +869,72 @@ sv = svRaw %>%
   dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
   dplyr::filter(!SiteNumber %in% lockList) %>%
   
+  ## join visit date to account for missing dates (when questionnaire not done)
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'Date_of_Visit',
+                                    'Study_Exit_or_Today', 'OID', 
+                                    'UWindow_Date')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>% 
+  
+  dplyr::mutate(INSTANCENAMEDATE = as.Date(gsub('.*-', '', 
+                                                INSTANCENAME), 
+                                           format = '%d %b %Y')) %>%
+  
+  dplyr::mutate(SVSTDAT_fix = as.Date(ifelse(FOLDER == 'UNS' & is.na(SVSTDAT), 
+                                             as.Date(INSTANCENAMEDATE), 
+                                         ifelse(is.na(SVSTDAT), as.Date(UWindow_Date),
+                                                as.Date(SVSTDAT))), 
+                                    origin = '1970-01-01')) %>%
+  dplyr::select(-Date_of_Visit) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(SVSTDAT_fix <= Date_of_Visit) %>%
+  
+  dplyr::arrange(SUBJECT, FOLDERSEQ, SVSTDAT_fix) %>%
+  dplyr::select(SUBJECT, FOLDER) %>%
+  unique()
+
+write.csv(svRaw,
+          file.path(outloc, 'svRaw.csv'), row.names = FALSE)
+write.csv(sv,
+          file.path(outloc, 'sv.csv'), row.names = FALSE)
   
   
-vs = vsRaw %>%
+##-------------------------------------------------------------------
+##-------------------------------------------------------------------
+##  Vital Signs   
+vs = vsRaw %>% 
+  ## filter out locked sites
+  dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  ## join visit date to account for missing dates (when questionnaire not done)
+  dplyr::left_join(svCompliance[, c('SUBJECT', 'Date_of_Visit',
+                                    'Study_Exit_or_Today', 'OID', 
+                                    'UWindow_Date')],
+                   by = c('SUBJECT', 'FOLDER' = 'OID')) %>% 
+  
+  dplyr::mutate(INSTANCENAMEDATE = as.Date(gsub('.*-', '', 
+                                                INSTANCENAME), 
+                                           format = '%d %b %Y')) %>%
+  
+  dplyr::mutate(VSDAT_fix = as.Date(ifelse(FOLDER == 'UNS' & is.na(VSDAT), 
+                                             as.Date(INSTANCENAMEDATE), 
+                                             ifelse(is.na(VSDAT), as.Date(UWindow_Date),
+                                                    as.Date(VSDAT))), 
+                                      origin = '1970-01-01')) %>%
+  dplyr::select(-Date_of_Visit) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(VSDAT_fix <= Date_of_Visit) %>%
+  
+  dplyr::arrange(SUBJECT, FOLDERSEQ, VSDAT_fix) %>%
+  dplyr::select(SUBJECT, FOLDER)
   
 
 
