@@ -116,9 +116,13 @@ LBCOVANCE_join = LBCOVANCEBase %>%
                           'VARIABLE' = 'VARIABLE_new'))
 
 
-##------------------------------------------------------------------------------
-##------------------------------------------------------------------------------
-## CREATE FINAL TABLE
+
+## write output file
+
+write.csv(LBCOVANCE_join,
+          file.path(paste0(localroot, localpath), 
+                    '270301_SnapShot_Compare_unroll.csv'), 
+          row.names = FALSE)
 
 
 
