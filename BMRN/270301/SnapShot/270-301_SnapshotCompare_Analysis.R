@@ -19,7 +19,7 @@
 lpkgs = c('haven', 'stringr', 'dplyr', 'tidyr', 'lubridate', 'purrr', 'readxl')
 
 # loop through required packages & if not already installed, load, then install
-for(pkg in lpkgs) {
+for (pkg in lpkgs ) {
   
   if (!require(pkg, character.only = TRUE)) {
     install.packages(pkg)
@@ -41,15 +41,16 @@ for(pkg in lpkgs) {
 localroot = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\'
 localpath = 'Studies\\BMRN270\\270-301\\ToplineFreeze\\SnapshotCompareFiles\\'
 
-file1 = 'snapshot_compare_270301_20210118.xlsx'
-file2 = 'filename.ext'
-file3 = 'filename.ext'
+file1 = 'snapshot_compare_270301_'
+filedate1 = '20210126'   ## <------------------enter file date here YYYYMMDD
+ext1 = '.xlsx'
+
 
 
 ## read in files
 
 LBCOVANCE_snap_raw = read_excel(paste0(localroot, localpath,
-                                  file1), 
+                                  file1, filedate1, ext1), 
                             sheet = 'LBCOVANCE') %>%
   data.frame()
 
@@ -72,7 +73,7 @@ LBCOVANCE_snap_raw = read_excel(paste0(localroot, localpath,
 ## CREATE PRIMARY TABLES
 
 ##  Create two tables here that are joined later
-##  First table unests the baseline data set values (value.changes)
+##  First table un-nests the baseline data set values (value.changes)
 LBCOVANCEBase = LBCOVANCE_snap_raw %>%
   dplyr::select(Subject.ID, Visit.Name, Sample.Collection.Date,
                 Specimen.identifier, Category.for.Lab.Test,
@@ -119,10 +120,10 @@ LBCOVANCE_join = LBCOVANCEBase %>%
 
 ## write output file
 
-write.csv(LBCOVANCE_join,
-          file.path(paste0(localroot, localpath), 
-                    '270301_SnapShot_Compare_unroll.csv'), 
-          row.names = FALSE)
+# write.csv(LBCOVANCE_join,
+#           file.path(paste0(localroot, localpath), 
+#                     paste0('270301_SnapShot_Compare_unroll', filedate1, '.csv')), 
+#           row.names = FALSE)
 
 
 

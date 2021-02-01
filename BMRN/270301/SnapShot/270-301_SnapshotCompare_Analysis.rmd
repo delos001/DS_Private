@@ -1,5 +1,6 @@
 ---
 title: "ToplineCompare_Analysis_LABCOVANCE"
+Study: "270-301"
 author: "Jason Delosh"
 date: "1/22/2021"
 output: 
@@ -21,7 +22,9 @@ library(knitr); library(kableExtra); library(ggplot2)
 
 ## **Introduction**
 
-On 21Dec2020, a topline snapshot was performed for the 270-301 study.  To appropriately monitor any changes to the data included in that snapshot, clinical programming compares that data from 21Dec2020 to current data and reports changes via a 'snapshot_compare' report.  The purpose of this analysis is to explore identified changes associated with Covance lab data, with a focus on reasons for test deletion, as well as changes observed in the following elements: laboratory results date, lab results, and laboratory units. 
+On 21Dec2020, a top-line snapshot was performed for the 270-301 study.  To monitor any changes to those data included in snapshot, clinical programming generates a 'snapshot_compare' report, comparing the snapshot data to current data.  
+
+The ToplineCompare_Analysis_LABCOVANCE report explores changes associated with Covance lab data to identify data quality trends and risks.  There are many variables in the data set so this analysis focuses on reasons for test deletion, as well as changes observed in the following elements: laboratory results date, lab results, and laboratory units. 
 
 ### **Source Scripts**
 '270-301_SnapshotCompare_Analysis.R'
@@ -35,37 +38,41 @@ source('270-301_SnapshotCompare_Analysis.R', local = knitr::knit_global())
   * Sheet = LBCOVANCE
   
 
-
-
+<br>
 
 ### **Summary**
 
-The Clinical Programming input report used for this analysis identifies changes for `r dim(LBCOVANCE_snap_raw)[1]` laboratory tests.  Two types or changes were observed: (`r unique(LBCOVANCEBase$status)`) yielding `r dim(LBCOVANCE_join)[1]` changes across `r length(unique(LBCOVANCE_join$VARIABLE))` lab variables shown below in Table 2.
+The Clinical Programming input report used for this analysis identifies changes for `r dim(LBCOVANCE_snap_raw)[1]` laboratory tests.  Changes fall into the following categories: (`r unique(LBCOVANCEBase$status)`), yielding `r dim(LBCOVANCE_join)[1]` total changes across `r length(unique(LBCOVANCE_join$VARIABLE))` lab variables (Table 2).
 
 ```{r, echo=FALSE}
-kable(addmargins(table(LBCOVANCE_snap_raw$status)), caption = 'Table 1: Change Types',
+kable(addmargins(table(LBCOVANCE_snap_raw$status)), caption = 'Table 1: Laboratory Tests with Changes, by Category',
       format = 'html', table.attr = "style='width:30%;'",
-      col.names = c("Variable", "Freq")) %>%
+      col.names = c("Change Category", "Freq")) %>%
   kable_styling(bootstrap_options = c('striped', 'hover')) %>%
   kable_classic(full_width = T, position = 'center',)
       
 ```
-Table 2 reflects the frequency of changes by variable.  Notably, some variables are correlative in function.  For example, lab date and time changes would occur simultaneously.  Recall that 'NA' in the Variable column represents "deleted" items, referenced in Table 1.  
+
+<br>
+
+Table 2 reflects the frequency of changes by variable, where a single lab test could have changes to multiple variables.  Notably, some variables are correlative in function.  For example, lab date and time changes would occur simultaneously.  A value of 'NA' in the Variable column, of Table 2, corresponds to changes for the "New" and "Deleted" items category.  
 
 ```{r, echo=FALSE}
 var_cnt = LBCOVANCE_join %>%
-  dplyr::count(VARIABLE) %>%
+  dplyr::group_by(VARIABLE, status) %>%
+  dplyr::count() %>%
   dplyr::arrange(desc(n))
   
 kable(var_cnt, caption = 'Table 2: Variable Frequency of Changes',
       format = 'html', table.attr = "style='width:30%;'",
-      col.names = c("Variable", "Freq")) %>%
+      col.names = c("Variable", "Status", "Freq")) %>%
   kable_styling(bootstrap_options = c('striped', 'hover')) %>%
   kable_classic(full_width = T, position = 'center',)
       
 ```
+$$\\[0.5in]$$
 
-### **Change Type: Deleted Tests**
+### **Change Category: Deleted Tests**
 
 There were `r table(LBCOVANCE_snap_raw$status)[1]` deleted samples. Figure 1 shows the reason for deletion is not documented for over half of the entries.
 
@@ -77,7 +84,6 @@ del_only = LBCOVANCE_snap_raw %>%
 ggplot(del_only, aes(x = Category.for.Lab.Test, 
                      fill = Reason.Test.Not.Done)) + 
   geom_bar() + 
-
   geom_text(aes(label = ..count..),
             stat = 'count',
             position = position_stack(vjust = 0.5)) +
@@ -86,17 +92,15 @@ ggplot(del_only, aes(x = Category.for.Lab.Test,
                                                        simplify = FALSE), 
                                                paste, 
                                                collapse = "\n")) +
-  
   ggtitle(label = 'Figure 1: Reason Test Not Done for Deleted Tests') +
   labs(x = 'Lab Test Category',
        y = 'Frequency',
        fill = 'Reason Test Not Done') +
-  
   theme_bw() +
   theme(axis.text.x = element_text(angle = 0, hjust = 1))
   
 ```
-
+<br>
 
 In general, reason for deletion entries are not consistently entered by Covance.  The breakdown of deleted items with no reason specified, by visit is displayed in Figure 2.
 
@@ -109,7 +113,6 @@ del_only2 = LBCOVANCE_snap_raw %>%
 ggplot(del_only2, aes(x = Category.for.Lab.Test, 
                      fill = Visit.Name)) + 
   geom_bar() + 
-
   geom_text(aes(label = ..count..),
             stat = 'count',
             position = position_stack(vjust = 0.5)) +
@@ -118,27 +121,24 @@ ggplot(del_only2, aes(x = Category.for.Lab.Test,
                                                        simplify = FALSE), 
                                                paste, 
                                                collapse = "\n")) +
-  
   ggtitle(label = 'Figure 2: Tests Deleted with No Reason') +
   labs(x = 'Test Cateogry',
        y = 'Frequency',
        fill = 'Visit Name') +
-  
   theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
   
 ```
+<br>
 
-Table 3 shows the frequency breakdown of deleted tests, with no reason, by test name.
-
-
+Test Names and associated frequencies of deleted tests in Figure 2 are displayed in Table 3.
 
 ```{r, echo=FALSE}
 del_only3 = LBCOVANCE_snap_raw %>%
   dplyr::filter(status == 'Deleted') %>%
   dplyr::filter(is.na(Reason.Test.Not.Done)) %>%
-  dplyr::group_by(Category.for.Lab.Test) %>%
-  dplyr::count(Test.Name)
+  dplyr::group_by(Category.for.Lab.Test, Test.Name) %>%
+  dplyr::count()
 
 kable(del_only3, caption = 'Table 3: Deleted Tests with No Reason for Deletion',
       format = 'html', table.attr = "style='width:100%;'",) %>%
@@ -146,12 +146,79 @@ kable(del_only3, caption = 'Table 3: Deleted Tests with No Reason for Deletion',
   kable_styling(bootstrap_options = c('striped', 'hover')) %>%
   kable_classic(full_width = F, position = 'center',)
 ```
-Deleted test frequency ranges from (min `r min(del_only3$n)`) to (max`r max(del_only3$n)`) across `r length(unique(del_only3$Test.Name))` tests.
+***** LOOK at this from labrefid or another appropriate grouping************
 
+
+
+
+
+Frequency of deletion, by test, ranges from (min `r min(del_only3$n)`) to (max`r max(del_only3$n)`) across `r length(unique(del_only3$Test.Name))` tests.
+
+$$\\[0.5in]$$
+
+### **Changed Category: New Test Results**
+The study is in maintenance so new test results are expected.  However, a number of new samples are reflected in the clinical programming comparison report.  Figure 3 shows new lab tests, by category, for those samples whose sample date is on or before 20Dec2020.
+
+```{r, echo=FALSE}
+new_only = LBCOVANCE_snap_raw %>%
+  dplyr::filter(status == 'New') %>%
+  dplyr::mutate(Sample.Collection.Date = as.Date(Sample.Collection.Date)) %>%
+  dplyr::filter(Sample.Collection.Date <= as.Date('2020-12-20')) %>%
+  dplyr::group_by(month = floor_date(Sample.Collection.Date, unit = 'quarter'))
+
+ggplot(new_only, aes(x = month, 
+                     fill = Category.for.Lab.Test)) + 
+  geom_bar(width = 50) + 
+  geom_text(aes(label = ..count..),
+            stat = 'count',
+            position = position_stack(vjust = 0.5)) +
+  scale_x_date(NULL, date_labels = '%Y-%b', date_breaks = '3 month') + 
+  ggtitle(label = 'Figure 3: New Test Results with Sample Dates < 20Dec2020') +
+  labs(x = 'Lab Test Category',
+       y = 'Frequency',
+       fill = 'Laboratory Category',
+       subtitle = 'Sum by Quarter') +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+It is worth noting that many of the sample results dates differ significantly from the sample date.
+
+
+Figure 3b shows the duration between when the sample was collected and when it was resulted.  The linear nature of the line is expected because of the axis variables.  The parallel lines in left upper portion of the plot suggest batch testing of some labs, which is expected.  Of particular interest are those points in the bottom right which were collected and resulted prior to the TopLine snap, but are showing up as new results.
+
+```{r, echo=FALSE}
+new_only_daydiff = LBCOVANCE_snap_raw %>%
+  dplyr::filter(status == 'New') %>%
+  dplyr::mutate(Sample.Collection.Date = as.Date(Sample.Collection.Date),
+                Result.Enter.Date = as.Date(Result.Enter.Date)) %>%
+  dplyr::mutate(Collect_Result_diff = difftime(Result.Enter.Date,
+                                               Sample.Collection.Date,
+                                                units = 'day')) %>%
+  dplyr::filter(Sample.Collection.Date <= as.Date('2020-12-20'))
+
+ggplot(new_only_daydiff, aes(x = Sample.Collection.Date, 
+                             y = Collect_Result_diff,
+                             color = Category.for.Lab.Test)) + 
+  geom_point(size = 2, alpha = 0.5) + 
+  # geom_text(aes(label = ..count..),
+  #           stat = 'count',
+  #           position = position_stack(vjust = 0.5)) +
+  scale_x_date(NULL, date_labels = '%Y-%b', date_breaks = '3 month') + 
+  ggtitle(label = 'Figure 3b: Sample Collection Date Compare to Results Date') +
+  labs(x = 'Lab Test Category',
+       y = 'Collection to Results Duration (days)',
+       fill = 'Sample Collection Date') +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+<br>
+The input file with 'New' data was only recently made available so time constraints prevented further exploration.  However, it is recommended that it be added to this analysis
+
+<br>
 
 ### **Changed Variable: Laboratory Results Date**
 
-Many changes to laboratory result dates were observed.  Figure 3 shows testing date changes occurred across two time periods; Period 1 = dates scattered across mid-2019; Period 2 = dates in late 2020 and early 2021.  
+There were `r dim(subset(LBCOVANCE_join, VARIABLE == "LBRESDAT"))[1]` changes to laboratory result dates were observed.  Figure 4 shows testing date changes occurred across two time periods; Period 1 = dates scattered across mid-2019; Period 2 = dates in late 2020 and early 2021.  
 
 
 ```{r, echo=FALSE}
@@ -159,20 +226,20 @@ lbdate_only_pivot = LBCOVANCE_join %>%
   dplyr::filter(VARIABLE == 'LBRESDAT') %>%
   tidyr::pivot_longer(cols = c('VALUE', 'VALUE_new'), names_to = 'VALUE_pt') %>%
   dplyr::mutate(LBRESDAT = as.Date(value, format = '%d%B%Y')) %>%
-    dplyr::arrange(Subject.ID, Visit.Name, Sample.Collection.Date, Test.Short.Name,
+  dplyr::arrange(Subject.ID, Visit.Name, Sample.Collection.Date, Test.Short.Name,
                  VALUE_pt) %>%
   dplyr::group_by(Subject.ID, Specimen.identifier, Sample.Collection.Date, Test.Short.Name) %>%
   dplyr::mutate(grpInd = group_indices())
 
 
 ggplot(lbdate_only_pivot, aes(x = VALUE_pt,
-                                y =  LBRESDAT,
-                                group = grpInd)) + 
+                              y =  LBRESDAT,
+                              group = grpInd)) + 
   geom_line() + 
   
   scale_y_date(date_labels = '%Y-%b', date_breaks = 'month') +
   
-  ggtitle(label = 'Figure 3: Change of Results Date') +
+  ggtitle(label = 'Figure 4: Change of Results Date') +
   labs(x = 'Original vs New Data Sets',
        y = 'Lab Sample Results Date') +
   
@@ -180,19 +247,18 @@ ggplot(lbdate_only_pivot, aes(x = VALUE_pt,
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 ```
+<br>
 
-The "Values" labels on the x-axis in Figure 3 represents the Dec 2020 snap shot data and the "Values_new" label represents the current data.  New testing date values range from `r min(lbdate_only_pivot$LBRESDAT[lbdate_only_pivot$VALUE_pt == 'VALUE_new'])` to `r max(lbdate_only_pivot$LBRESDAT[lbdate_only_pivot$VALUE_pt == 'VALUE_new'])`
+The "Values" labels on the x-axis in Figure 4 represents the Dec 2020 snap shot data and the "Values_new" label represents the current data (`r filedate1`).  New testing date values range from `r min(lbdate_only_pivot$LBRESDAT[lbdate_only_pivot$VALUE_pt == 'VALUE_new'])` to `r max(lbdate_only_pivot$LBRESDAT[lbdate_only_pivot$VALUE_pt == 'VALUE_new'])`
 
-Figure 4 shows period 1 lab result updates (those results with original results dates spread across mid-2019).  Most are associated with HLA results.  Prior to the snapshot in December, it was discovered that some HLA tests were mapped incorrectly and other HLA tests were missing.  This issue was addressed at Covance causing changes to be applied to these types of tests.  It is likely the date updates are due to the mapping correction.  
+Figure 4 shows period 1 lab result updates (those results with original results dates spread across mid-2019).  Most are associated with HLA results.  Prior to the snapshot in December, it was discovered that some HLA tests were mapped incorrectly and other HLA tests were missing.  This issue was addressed at Covance causing changes to be applied to these types of tests.  It was expected that resolution of this issue would create some variables to change but it is unclear why the sample results date is changed.  
 
-The exception here is the Blood Viral Shedding lab in Figure 4, which was not part of the mapping update.
+One exception is noted: Blood Viral Shedding labs shown in Figure 5 were not included of the mapping and missing test updates.
 
 ```{r, echo=FALSE}
 lbdate_grp1 = lbdate_only_pivot %>%
   dplyr::filter(VALUE_pt == 'VALUE') %>%
   dplyr::filter(LBRESDAT < as.Date('2020-09-01'))
-
-
 
 ## plot grp 1
 ggplot(lbdate_grp1, aes(x = Test.Name)) + 
@@ -209,14 +275,15 @@ ggplot(lbdate_grp1, aes(x = Test.Name)) +
                                                paste, 
                                                collapse = "\n")) +
   
-  ggtitle(label = 'Figure 4: Period 1 Results with Results Date Changes') +
+  ggtitle(label = 'Figure 5: Period 1 Results with Results Date Changes') +
   labs(x = 'Lab Test Name',
        y = 'Frequency') +
 
   theme(axis.text.x = element_text(angle = 0, hjust = 1))
 ```
+<br>
 
-Figure 5 shows period 2 tests (those tests with original results dates at the end of 2020 and early 2021).  These are spread across various lab categories and there is no apparent pattern.  
+Figure 6 shows period 2 tests (those tests with original results dates at the end of 2020 and early 2021).  These are spread across various lab categories and there is no apparent pattern.  
 
 ```{r, echo=FALSE}
 lbdate_grp2 = lbdate_only_pivot %>%
@@ -237,7 +304,7 @@ ggplot(lbdate_grp2, aes(x = Test.Name, fill = status)) +
                                                paste, 
                                                collapse = "\n")) +
   
-  ggtitle(label = 'Figure 5: Period 2 Results with Results Date Changes') +
+  ggtitle(label = 'Figure 6: Period 2 Results with Results Date Changes') +
   labs(x = 'Lab Test Name',
        y = 'Frequency',
        fill = 'Test Status') +
@@ -245,11 +312,10 @@ ggplot(lbdate_grp2, aes(x = Test.Name, fill = status)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1))
 
 ```
+<br>
+Details of findings in Figure 4 and 5 can be found in the accompanied data file entitled `r paste0('270301_SnapShot_Compare_unroll', filedate1, '.csv')` file, by filtering "VARIABLE" column for LBRESDAT.  Original and current values will be in the VALUE and VALUE_new columns, respectively.
 
-Details of findings in Figure 4 and 5 can be found in the accompanied data file entitled 270-301_SnapShot_Compare_unroll file, by filtering "VARIABLE" column for LBRESDAT.  Original and current values will be in the VALUE and VALUE_new columns, respectively.
-
-
-
+$$\\[0.5in]$$
 
 ### **Changed Variable: Laboratory Results**
 
@@ -258,10 +324,10 @@ Using the original results variable (LBORRES), there were changes to results of 
 *  Original value was NA and was updated to 'See comment'
 *  Original result was blank and has been updated to contain a value
 *  Original result value does not match updated result value
-
+<br>
 
 #### Original value was NA and was updated to 'See comment'
-Figure 6, below shows all tests that originally had "NA" in the results field and now reflect 'See Comment'.  These are exclusively associated with HLA tests.  Recent discussions with Covance have included the need to conform to the DTS regarding the use of NA in the results field.  These updates may be due to these discussions.
+Figure 7, below shows all tests that originally had "NA" in the results field and now reflect 'See Comment'.  These are exclusively associated with HLA tests.  Recent discussions with Covance have included a need to conform to the DTS regarding the use of "NA" in the results field.  These updates may be due to actions taken by Covance related to these discussions.
 
 ```{r, echo=FALSE}
 lbvalue_na = LBCOVANCE_join %>%
@@ -282,7 +348,7 @@ ggplot(lbvalue_na, aes(x = Test.Name, fill = VALUE_new)) +
                                                paste, 
                                                collapse = "\n")) +
   
-  ggtitle(label = 'Figure 6: Tests Results Changed, Original Valule = NA') +
+  ggtitle(label = 'Figure 7: Tests Results Changed, Original Valule = NA') +
   labs(x = 'Lab Test Name',
        y = 'Frequency',
        fill = 'VALUE_new') +
@@ -290,10 +356,10 @@ ggplot(lbvalue_na, aes(x = Test.Name, fill = VALUE_new)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1))
 
 ```
-
+<br>
 
 #### Original result was blank and has been updated to contain a value
-Laboratory results that were null in the original snapshot data set, but now have results, are shown below in Figure 7, and a list of these subjects and lab tests are found in Table 4. Details can also be found in the accompanied data export file.
+Laboratory results that were null in the original snapshot data set, but now have results, are shown below in Figure 8, and a list of these subjects and lab tests are found in Table 4. Details can also be found in the accompanied data export file.
 
 ```{r, echo=FALSE}
 lbvalue_blank = LBCOVANCE_join %>%
@@ -314,7 +380,7 @@ ggplot(lbvalue_blank, aes(x = Test.Name, fill = Category.for.Lab.Test)) +
                                                paste, 
                                                collapse = "\n")) +
   
-  ggtitle(label = 'Figure 7: Tests Results Changed, Original Valule Null') +
+  ggtitle(label = 'Figure 8: Tests Results Changed from NULL to New Value') +
   labs(x = 'Lab Test Name',
        y = 'Frequency',
        fill = 'Lab Category') +
@@ -322,8 +388,8 @@ ggplot(lbvalue_blank, aes(x = Test.Name, fill = Category.for.Lab.Test)) +
   theme(axis.text.x = element_text(angle = 0, hjust = 1))
 
 ```
-
-
+<br>
+Table 4 shows the visit visit and test name details for laboratory tests present in Figure 7.
 ```{r, echo=FALSE}
 lbvalue_blank2 = lbvalue_blank %>%
   dplyr::select(#Subject.ID, 
@@ -335,9 +401,10 @@ kable(lbvalue_blank2, caption = 'Table 4: Tests Results Changed, Original Valule
   kable_styling(bootstrap_options = c('striped', 'hover')) %>%
   kable_classic(full_width = F, position = 'center',)
 ```
+<br>
 
 #### Original result value does not match updated result value
-The final group (results were updated and do not match original results) is shown in the figure below.  These are primarily related to HLA testing. A manual review reveals many of the updates appear to be adding a suffix identifier at the end.  SME knowledge would be needed to identify whether these suffixes substantially alter the results.
+The final group (results were updated and do not match original results) is shown in the figure below.  These are primarily related to HLA testing and the change appears to be related to the addition of a suffix identifier at the end results string.  SME knowledge would be needed to identify whether these suffixes substantially alter the results.
 
 ```{r, echo=FALSE}
 lbvalue_mismatch = LBCOVANCE_join %>%
@@ -353,7 +420,9 @@ kable(lbvalue_mismatch, caption = 'Table 5: Tests Results Changed, Original:New 
   kable_styling(bootstrap_options = c('striped', 'hover')) %>%
   kable_classic(full_width = F, position = 'center',)
 ```
-There are two tests not related to HLA testing, where the test result changes would appear to be substantial.
+<br>
+
+Tests included in Table 5 that are not related to HLA testing are isolated in Table 6 and appear to have substantial changes to the results values, where 'substantial' is defined here to mean a quantitative change in the results.
 
 ```{r, echo=FALSE}
 lbvalue_mismatch2 = lbvalue_mismatch %>%
@@ -368,11 +437,12 @@ kable(lbvalue_mismatch2, caption = 'Table 6: Non-HLA Tests Results Changed, Orig
   kable_styling(bootstrap_options = c('striped', 'hover')) %>%
   kable_classic(full_width = F, position = 'center',)
 ```
-
+$$\\[0.5in]$$
 
 ### **Changed Variable: Laboratory Units**
 
-All lab test unit changes (LBORRESU) are such that units in the original snapshot data were null but contain non-null values in the new data set. Table 7 shows each changed unit has an associated lab test change already described in the Laboratory Results section above, and suggesting these changes are correlative in function.
+All lab test unit changes (LBORRESU) are such that units in the original snapshot data were null but contain non-null values in the new data set. Table 7 shows each changed unit has an associated lab test change already described in the Laboratory Results section above, and suggesting these changes are functionally correlative.
+
 ```{r, echo=FALSE}
 
 lbvalueLBORRES = LBCOVANCE_join %>%
@@ -407,8 +477,9 @@ kable(lbvalue_units, caption = 'Table 7: Test Units Changed (with Associated Res
   kable_classic(full_width = F, position = 'center',)
 ```
 
+$$\\[0.5in]$$
 
-### Closing
-As previously mentioned, this report is accompanied with a file containing details of the changes identified in the clinical programming file.
+### **Closing**
+As previously mentioned, this report is accompanied with a file containing details of the changes identified in the clinical programming file.  However, blinding procedures will dictate access to the file.
 
 Only a subset of the changed variables were explored during this analysis.  Exploration of additional variables can be done, if needed.
