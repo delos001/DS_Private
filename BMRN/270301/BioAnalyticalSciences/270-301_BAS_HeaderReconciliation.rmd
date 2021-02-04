@@ -1,0 +1,58 @@
+---
+title: "270-301_BAS_Header_Reconciliation"
+author: "Jason Delosh"
+date: "2/4/2021"
+output: 
+  html_document:
+    toc: yes
+    toc_float: true
+    highlight: zenburn
+    theme: united
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS = TRUE)
+
+library(knitr); library(kableExtra); library(ggplot2)
+```
+
+
+## **Introduction**
+
+The Bioanalytical Sciences Data Transfer Specs outline the specifications for transfer of 270-301 bioanalytical data from BioAnalytical Sciences at BioMarin to Clinical Data Management.  The purpose of this report is to reconcile the BAS header files against the approved Bioanalytical Sciences Data Transfer Specs, with respect to file format, structure, and field specifications.
+
+### **Source Scripts**
+```{r, include=FALSE}
+source("./BAS/test.R", local = knitr::knit_global())
+```
+
+
+### **Inputs:**
+
+* BMN270-301_DTS_BioAnalytical_Sciences_22Dec2020
+
+<br>
+
+
+### **Summary**
+
+Three assay data sets are included in this report: 
+*  ddPCR Assay 1:  CDM Dataset LBDDPCR
+*  ddPCR Assay 2: CDM Dataset LBDDPCR
+*  iqPCR Assay: CDM Dataset LBIQPCR
+
+Upon transfer of the files, by BAS to CDM via sFTP server, clinical programming will bind like files together such that two files are uploaded to the ACE server:
+*  lbiqpcr_header.sas7bdat
+*  lbddpcr_header.sas7bdat
+
+<br>
+
+
+### **File Structure**
+
+The combined header file dimensions are `r nrow(bas_Bind)` rows across `r ncol(bas_Bind)` variables where one variable is derived to specify the original data set (ie: lbddpcr vs. lbiqpcr).  The component breakdown is as follows:
+*  lbiqpcr: `r nrow(lbiqpcr_header_raw)` rows across `r ncol(lbiqpcr_header_raw)` variables.  
+*  lbddpcr: `r nrow(lbddpcr_header_raw)` rows across `r ncol(lbddpcr_header_raw)` variables.

@@ -1,5 +1,4 @@
-
-# TITLE: 270-301 Covance bloodwords mutation
+# TITLE: 270-301_BloodWorks_mutation
 # STUDY: 370-301
 # AUTHOR: Jaosn Delosh
 # DATE: 12Nov2020
@@ -21,7 +20,7 @@
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## LOAD PARENT SCRIPTS
-source('270-301_Covance_ACE_datasets.R')  ## need to fix incorrect subject IDs
+source('./ExternalLaboratory/270-301_Covance_ACE_Dataoper.R')  ## needed to fix incorrect subject IDs
 source('270-301_svAnchorData.R')
 
 
@@ -137,6 +136,3 @@ subjCompareMut = bwMutation %>%
 ## join fix column to fviiiGeno
 bwMutation_final = bwMutation %>%
   dplyr::left_join(subjCompareMut[,c('SUBJECT', 'SUBJECT_fix')], by = 'SUBJECT')
-
-
-

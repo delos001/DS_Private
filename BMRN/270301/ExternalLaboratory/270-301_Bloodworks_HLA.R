@@ -1,5 +1,5 @@
 
-# TITLE: 270-301_Covance_bloodworks_mutation
+# TITLE: 270-301_Bloodworks_HLA
 # STUDY: 270-301
 # AUTHOR: Jason Delosh
 # DATE: 12Nov2020
@@ -84,7 +84,7 @@ bwHLA_LBSPIDdf = purrr::map2_df(bwHLA_LBSPID, names(bwHLA_LBSPID),
                                   data.frame(
                                     LBTEST = y, 
                                     LBSPID = as.character(x))
-                                  })  
+                                })  
 
 
 ##------------------------------------------------------------------------------

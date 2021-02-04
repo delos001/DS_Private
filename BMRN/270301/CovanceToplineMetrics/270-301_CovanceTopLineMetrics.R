@@ -23,7 +23,7 @@
 
 ## NOTE: should not contain results. uses 270-301_CovanceAll_noResults file only
 source('270-301_svCompliance.R')
-source('270-301_Covance_BIND_ALL.R')
+source("./ExternalLaboratory/270-301_ExternalLab_Bind_All_Data.R")
 
 
 ##------------------------------------------------------------------------------

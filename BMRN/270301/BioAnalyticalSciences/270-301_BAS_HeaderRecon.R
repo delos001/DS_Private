@@ -1,5 +1,5 @@
 
-# TITLE: 270-301 Data Transfer Specification for Data With BioAnalytical Sciences
+# TITLE: 270-301 BAS Header Reconciliation
 
 # STUDY: 270-301
 # AUTHOR: Jason Delosh
@@ -28,6 +28,7 @@
 ## c('haven', 'stringr', 'dplyr', 'tidyr', 'lubridate', 'purrr')
 
 library(data.table)
+library(tabulizer)
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
@@ -41,33 +42,36 @@ source('270-301_svCompliance.R')
 ## LOAD DATA
 
 ## Define paths--------------------------------------
-ACEcdmwda = '\\\\sassysprd.bmrn.com\\cdm\\cdmprd\\'
-ACE270301unblindeda = 'bmn270\\hemoa\\270301\\csrunblinded\\dataoper\\'
+ACEcdmwd = '\\\\sassysprd.bmrn.com\\cdm\\cdmprd\\'
+ACE270301csrub = 'bmn270\\hemoa\\270301\\csrunblinded\\dataoper\\'
 
 
 ## Define Files--------------------------------------
-
-
-
-##------------------------------------------------------------------------------
-## temporary path for LBDDPCR and LBIQPCR header test transfer files
-bas_root = '\\\\sassysprd.bmrn.com\\cdm\\cdmdev\\'
-bas_folder = 'bmn270\\hemoa\\270301\\csrunblinded\\output\\clin\\datatemp\\'
 
 ## CDM Dataset = LBDDPCR; Biological Matrices = PBMC and Whole Blood
 lbiqpcr_header_file = 'lbiqpcr_header.sas7bdat'
 lbddpcr_header_file = 'lbddpcr_header.sas7bdat'
 
 
+## Specify the pdf location
+localroot = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
+localpth = 'BMRN270\\270-301\\BAS\\'
+file1 = 'BMN270-301_DTA_BioAnalytical_Sciences_22DEC2020.pdf'
+mypdf = paste0(localroot, localpth, file1)
+
+## extract the tables
+pdfout = extract_tables(mypdf)
+
+
 
 
 ## Read files----------------------------------------
 
-lbiqpcr_header_raw = read_sas(data_file = paste(bas_root, bas_folder, 
+lbiqpcr_header_raw = read_sas(data_file = paste(ACEcdmwd, ACE270301csrub, 
                                                 lbiqpcr_header_file, sep = ""),
                               .name_repair = 'check_unique')
 
-lbddpcr_header_raw = read_sas(data_file = paste(bas_root, bas_folder,
+lbddpcr_header_raw = read_sas(data_file = paste(ACEcdmwd, ACE270301csrub,
                                                 lbddpcr_header_file, sep = ""),
                               .name_repair = 'check_unique')
 
@@ -92,11 +96,28 @@ lbiqpcr_header = lbiqpcr_header_raw %>%
 lbddpcr_header = lbddpcr_header_raw %>%
   dplyr::mutate(FileSource = 'LBDDPCR_HEADER')
 
+## Bind lbiqpcr and lbddpcr files into one file
+bas_Bind = dplyr::bind_rows(lbiqpcr_header, lbddpcr_header) %>%
+  dplyr::rename(SUBJECT_bas = SUBJECT)
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
-## CREATE PRIMARY TABLES
+## CREATE INPUT TABLES
 
+## PDF Document------------------------------------------
+## Get tables of interest from PDF controlled document
+## bind tables, convert to data frame
+tblA3 = as.data.frame(do.call(rbind, pdfout[15:16])) %>%
+  ## remove extraneous rows: convert blanks to NA, then omit rows that are NA
+  na_if("") %>%
+  na.omit
+colnames(tblA3) = c('Biological_Matrix(LBSPEC)', 'Analyte_Name(LBTESTCD)',
+                    'Lab_Test_Category(LBCAT)', 'Lab_Test_Identifier(LBSPID',
+                    'Lab_Test_Short_Name(LBTEST)')
+tblA3 = tblA3 %>% dplyr::mutate(TableName = "Attachment 3")
+
+
+## Anchor Data from SVCompliance Table--------------------
 ## get visit names, dates, windows
 svSubs = svCompliance %>%
   dplyr::filter(Visit_Expected == 'Yes') %>%
@@ -106,45 +127,37 @@ svSubs = svCompliance %>%
 
 
 
-## Bind lbiqpcr and lbddpcr files into one file
-bas_Bind = dplyr::bind_rows(lbiqpcr_header, lbddpcr_header) %>%
-  dplyr::rename(SUBJECT_bas = SUBJECT)
-
-
-
-## perform outer join 
-JoinR =  setDT(bas_Bind)[setDT(svSubs), 
-                         .(SUBJECT, FOLDERSEQ, FolderName,
-                           LWindow_Date, UWindow_Date,
-                           x.SUBJECT_bas, x.FOLDERNAME, x.LBSTDTN, x.LBREFID, x.LBSPEC),
-                         all = TRUE,
-                         on = .(SUBJECT_bas == SUBJECT, 
-                                LBSTDTN >= LWindow_Date, 
-                                LBSTDTN <= UWindow_Date)]
-names(JoinR) = gsub('x.', '', names(JoinR), fixed = TRUE)
-
-JoinL =  setDT(svSubs)[setDT(bas_Bind),                                 
-                       .(x.SUBJECT, x.FOLDERSEQ, x.FolderName,
-                         x.LWindow_Date, x.UWindow_Date,
-                         SUBJECT_bas, FOLDERNAME, LBSTDTN, LBREFID, LBSPEC),
-                       all = TRUE,
-                       on = .(SUBJECT == SUBJECT_bas, 
-                              LWindow_Date <= LBSTDTN, 
-                              UWindow_Date >= LBSTDTN)]
-names(JoinL) = gsub('x.', '', names(JoinL), fixed = TRUE)
-
-
-
-BASJoinFull = unique(rbind(JoinR, JoinL, use.names = FALSE))
-
-
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## CREATE FINAL TABLE
 
 
-
+## perform outer join 
+# JoinR =  setDT(bas_Bind)[setDT(svSubs), 
+#                          .(SUBJECT, FOLDERSEQ, FolderName,
+#                            LWindow_Date, UWindow_Date,
+#                            x.SUBJECT_bas, x.FOLDERNAME, x.LBSTDTN, 
+#                            x.LBREFID, x.LBSPEC),
+#                          all = TRUE,
+#                          on = .(SUBJECT_bas == SUBJECT, 
+#                                 LBSTDTN >= LWindow_Date, 
+#                                 LBSTDTN <= UWindow_Date)]
+# names(JoinR) = gsub('x.', '', names(JoinR), fixed = TRUE)
+# 
+# JoinL =  setDT(svSubs)[setDT(bas_Bind),                                 
+#                        .(x.SUBJECT, x.FOLDERSEQ, x.FolderName,
+#                          x.LWindow_Date, x.UWindow_Date,
+#                          SUBJECT_bas, FOLDERNAME, LBSTDTN, LBREFID, LBSPEC),
+#                        all = TRUE,
+#                        on = .(SUBJECT == SUBJECT_bas, 
+#                               LWindow_Date <= LBSTDTN, 
+#                               UWindow_Date >= LBSTDTN)]
+# names(JoinL) = gsub('x.', '', names(JoinL), fixed = TRUE)
+# 
+# 
+# 
+# BASJoinFull = unique(rbind(JoinR, JoinL, use.names = FALSE))
 
 
 

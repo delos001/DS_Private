@@ -55,7 +55,8 @@ The purpose is to re-run the anlsysis using the raw HLA Blood Works csv file to 
 ### **Source Scripts**
 '270-301_CovanceTopLineMetrics.R'
 ```{r, include=FALSE}
-source('270-301_CovanceTopLineMetrics.R', local = knitr::knit_global())
+source("./CovanceToplineMetrics/270-301_CovanceTopLineMetrics.R", 
+       local = knitr::knit_global())
 ```
 
 

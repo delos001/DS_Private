@@ -94,7 +94,7 @@ LBCOVANCENew = LBCOVANCE_snap_raw %>%
   dplyr::select(Subject.ID, Visit.Name, Sample.Collection.Date,
                 Specimen.identifier, Category.for.Lab.Test,
                 Test.Short.Name, Lab.Test.Identifier,
-                Test.Name, status,
+                Test.Name, status, Reason.Test.Not.Done,
                 newvalues) %>%
   ## first: turn string into a list where each element is split by the comma
   dplyr::mutate(tempsplit = strsplit(as.character(newvalues), ',')) %>%
@@ -110,7 +110,8 @@ LBCOVANCE_join = LBCOVANCEBase %>%
   dplyr::left_join(LBCOVANCENew[, c('Subject.ID', 'Visit.Name', 
                                     'Sample.Collection.Date', 
                                     'Specimen.identifier', 'Lab.Test.Identifier',
-                                    'VARIABLE_new', 'VALUE_new')],
+                                    'VARIABLE_new', 'VALUE_new',
+                                    'Reason.Test.Not.Done')],
                    by = c('Subject.ID', 'Visit.Name', 
                           'Sample.Collection.Date', 
                           'Specimen.identifier', 'Lab.Test.Identifier',
@@ -121,8 +122,8 @@ LBCOVANCE_join = LBCOVANCEBase %>%
 ## write output file
 
 # write.csv(LBCOVANCE_join,
-#           file.path(paste0(localroot, localpath), 
-#                     paste0('270301_SnapShot_Compare_unroll', filedate1, '.csv')), 
+#           file.path(paste0(localroot, localpath),
+#                     paste0('270301_SnapShot_Compare_unroll', filedate1, '.csv')),
 #           row.names = FALSE)
 
 

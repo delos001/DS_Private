@@ -32,23 +32,19 @@ for(pkg in lpkgs) {
 ##------------------------------------------------------------------------------
 ## LOAD PARENT SCRIPTS
 
-source('270-301_Covance_BIND_ALL.R')
-source('270-301_svCompliance.R')
+source('./ExternalLaboratory/270-301_ExternalLab_Bind_All_Data.R')
 
 
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## LOAD DATA
 
-path = 'C:\\path\\path1\\'
-file1 = 'filename.ext'
-file2 = 'filename.ext'
-file3 = 'filename.ext'
-
 
 ## read in files
 
 
+## Save path
+outloc_bindall = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\BMRN270\\270-301\\Covance_Raw\\'
 
 
 ##------------------------------------------------------------------------------
@@ -75,6 +71,14 @@ file3 = 'filename.ext'
 ## CREATE FINAL TABLE
 
 
+## ADHOC ITEM: get unique list of tests performed
 
+uniqueLabsPresent = LabBindAll_NoResults %>%
+  dplyr::select(LBSPID, LBTESTCD, LBTEST) %>%
+  unique()
+
+
+write.csv(uniqueLabsPresent, file.path(outloc_bindall, 'uniqueLabsPresent.csv'),
+                                      row.names = FALSE)
 
 

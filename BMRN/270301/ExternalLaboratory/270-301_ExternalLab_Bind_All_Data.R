@@ -1,5 +1,5 @@
 
-# TITLE: Covance All Labs No Results
+# TITLE: 270-301_ExternalLab_Bind_All_Data
 # STUDY: 270-301
 # AUTHOR: Jason Delosh
 # DATE: 15Oct2020
@@ -39,9 +39,9 @@
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## LOAD PARENT SCRIPTS
-source('270-301_Covance_ACE_datasets.R')
-source('270-301_Covance_bloodworks_mutation.R')
-source('270-301_Covance_bloodworks_HLA.R')
+source('./ExternalLaboratory/270-301_Covance_ACE_Dataoper.R')
+source('./ExternalLaboratory/270-301_Bloodworks_mutation.R')
+source('./ExternalLaboratory/270-301_Bloodworks_HLA.R')
 
 
 ##------------------------------------------------------------------------------
@@ -68,7 +68,7 @@ resCols = c('LBORRES', 'LBSTRESC', 'LBSTRESN', 'LBSIRES')
 ## Exclude HLA Genotyping subcategory from ACE data sets (see instructions)
 Covance_ACE_final = Covance_ACE_final %>%
   dplyr::filter(!LBSPID %in% c(805, 806, 807, 808, 809, 810, 868, 869, 870, 
-                              878, 879, 880, 881, 882, 883))
+                               878, 879, 880, 881, 882, 883))
 
 
 ##---------------------------------
@@ -109,4 +109,3 @@ outloc_bindall = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\BM
 # 
 # write.csv(uniqueLabsPresent, file.path(outloc_bindall, 'uniqueLabsPresent.csv'),
 #                                       row.names = FALSE)
-
