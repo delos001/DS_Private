@@ -1,0 +1,637 @@
+
+Data Transfer Specifications 
+Bioanalytical data from characterized bioanalytical assays where testing was performed in BioAnalytical Sciences (BAS) at BioMarin 
+Protocol: 270-301 
+
+A Phase 3 Open-Label, Single-Arm Study to Evaluate the Efficacy and Safety of BMN 270, an Adeno-Associated Virus Vector–Mediated Gene Transfer of Human Factor VIII in Hemophilia A Patients withResidual FVIII Levels = 1 IU/dL 
+Receiving Prophylactic FVIII Infusions 
+
+
+
+Contents 
+
+1  Purpose.........................................................................................................................................................3  
+2  File format....................................................................................................................................................3  
+3  File Structure................................................................................................................................................3  
+4  File Names ...................................................................................................................................................3  
+5  Data Selection ..............................................................................................................................................4  
+6  Transfer medium and security......................................................................................................................4  
+7  Test Transfer ................................................................................................................................................5  
+8  Transfer Frequency ......................................................................................................................................5  
+9  Visit Identification .......................................................................................................................................5  
+10  Test Identification ....................................................................................................................................5  
+11  Reference Ranges and Alert Flags ...........................................................................................................5  
+12  Missing Data ............................................................................................................................................5  
+13  Data Discrepancies...................................................................................................................................5  
+14  Retransmission of Corrected Data ...........................................................................................................5  
+15  Blinding of Data.......................................................................................................................................6  
+16  Contact Information .................................................................................................................................7  
+17  Document History....................................................................................................................................7  
+
+Attachment 1: Data Specification Table for BAT text files to BioMarin CDM ..................................................9 Table 1: ddPCR Assay DT Specifications....................................................................................................9 Table 2: iqPCR Assay DT Specifications...................................................................................................11 Table 3: ddPCR Assay 2 DT Specifications...............................................................................................12 
+Attachment 2: Visit Mapping.............................................................................................................................14 Attachment 3: Laboratory Test Identifiers, Analyte, Short, and Long Names ..................................................20 Attachment 4: BAS Validated Watson LIMS Custom Report Export Templates .............................................22 Attachment 5: BAS Example ddPCR File Naming and Data Transfer File Convention...................................23 
+
+
+1 Purpose The purpose of this Data Transfer Specification is to outline the specifications for the transfer of 270­301 bioanalytical data from characterized bioanalytical assays where testing was performed in BioAnalytical Sciences (BAS) at BioMarin to Clinical Data Management. The data from the following exploratory assays are transmitted to Clinical Data Management: 
+ddPCR: matrices PBMC and whole blood iqPCR: matrices semen and plasma 
+A subset of patients and timepoints were tested for the above assays for exploratory analysis and all samples that were tested were collected at visits indicated in the 270-301 Protocol (See Attachment 2 in this document). 
+2 File format 
+
+Text, Tab Delimited (.txt) 
+3 File Structure Based on CDISC SDTM model, with one record per analyte per visit per reference time point for each type of data.  See Attachment 1 for details on the expected variables. 
+4 File Names All BAS lab data files should be separated according to analyte. Expected import file names see Attachment 5 for ddPCR and iqPCR. 
+
+
+All files should be enclosed within a zip file with a unique name that identifies the specific file iteration. 
+General file naming convention: 
+. 270301_[transfer type]_[report date].zip (e.g.: 270301_interim_28oct2009.zip) 
+Note: ‘Transfer Type’ refers to either ‘Header’, ‘test’, ‘interim’, or ‘final’. ddPCR file naming convention (see Attachment #5): 
+. 270-301_ddPCR_[CPT or WB]_[date]_[file transfer type-test, interim, final] iqPCR file naming convention: 
+. 270301_iqPCR_[plasma or semen]_[date]_[file transfer type-test, interim, final] 
+If additional files are transferred that require the same data or zip file naming format, the new file will add an underscore the word rev then a sequential number after the unique name that identifies the specific file iteration. 
+. General file: 270301_ [transfer type] _ [report date]_rev[Sequential number].zip (e.g.:270301_interim_28oct2009_rev1.zip) 
+Note: ‘Transfer Type’ refers to either ‘Header’, ‘test’, ‘interim’, or ‘final’. 
+. 
+ddPCR file: 
+
+270-301_ddPCR_[CPT or WB] _[date]_[file transfer type-test, interim, final]_rev[sequential number] 
+
+. 
+iqPCR file: 
+
+
+270301_iqPCR_ [plasma or semen]_[date]_[file transfer type-test, interim,     final]_rev[sequential number] 
+5 Data Selection All transfers are to be cumulative, i.e., include all new and previously transmitted data with each transfer. 
+6 Transfer medium and security BAS will save and zip the files containing the results report to a file in Validated Livelink (aka: G Drive). BAS will then transfer the zip file to the inbound data folders in the CDM sFTP server. 
+a. Alternatively, as a backup: 
+1. 
+BAS will save and zip the files containing the results report to a file in Validated Livelink (aka: G Drive). Permissions will be granted for access to the file and a link will be emailed to authorized users. An email will be sent to BMT-EDT@bmrn.com when zip file is posted to Livelink, which will be carbon copied the Lead Data Manager. 
+
+2. 
+Files could be transferred as a password-protected zip file accessible by WinZip as an email attachment.  The password should be sent in a separate email, and the same password used for all transfers for the study. 
+
+
+
+
+7 Test Transfer A test transfer will be prepared and sent to verify the structure and process of creating and transmitting the data file. This data may also be used by the analysis programming groups for software development purposes. The test transfer may include real data or mocked-up data but must have the exact same structure as the final production data, and all data must fall within the expected domain of values for each field. 
+8 Transfer Frequency 
+
+a. 
+Test transfer should be sent within 4 weeks of approval of final DT specs, or within 2 weeks of production data becoming available, whichever is later. 
+
+b. 
+Interim and final data transfers may be requested or scheduled with BAS, Clinical Operations and CDM. 
+
+c. 
+Additional transfers may be requested prior to study milestones such as interim analyses or study closeout. 
+
+d. 
+As testing for the 270-301 is exploratory and non-routine in nature, BAS will transfer a ‘Header File’ and a ‘Result File’ if testing is requested and results will be reported. 
+
+e. 
+Approximately 5 transfers will take place, however, due to the exploratory nature of the assays, more or fewer transfers may be needed as agreed upon by the Study Team. 
+
+
+9 Visit Identification 
+
+Visits will be mapped as defined in Attachment 2. 
+10 Test Identification 
+
+Lab tests should be identified using the lab test descriptions specified in Attachment 3 
+11 Reference Ranges and Alert Flags 
+Not Applicable 
+
+12 Missing Data Where scheduled samples are drawn but no results are available due to missing samples, insufficient quantity, damaged sample, etc., a record should be included in the transferred data for each expected but missing assay result.  The result should be ‘N.R.’ (Not Reportable) with the reason for the missing result provided in the ‘Comment’ field. See Attachment 1. 
+13 Data Discrepancies Data discrepancies may be identified and communicated to BAS by the lead data manager.  BAS will partner with Clinical Operations and Clinical Biospecimen Management to research and clarify the discrepancies as needed and BAS will make any indicated data corrections following BAS’ established process for applying and documenting corrections. The corrected data will be included in the next scheduled transfer, or if requested by BioMarin, in a special unscheduled cumulative transfer. 
+14 Retransmission of Corrected Data 
+In the event of data retransmission, a revision will be made to the report that had already been 
+transmitted, by appending an extra extension in the file name.  When revising the file name, a ‘_rev 
+
+
+[revision number]’ will be added before the file name extension (e.g.: 270301_f8_rev1.txt). The zip file will also be named with the appended extension (e.g.: ‘270301_interim_13apr2012_rev1.zip’) and the date of the original transmission kept in the file name. 
+15 Blinding of Data 
+
+Data covered by this Data Transfer Specification are unblinded – no blinding is required. 
+
+
+16 Contact Information 
+
+Name & Title  Telephone  E-mail  
+Andrea Van Tuyl, Associate Director, Bioanalysis  (415) 506-6371  avantuyl@bmrn.com  
+Lucy Crockett, Manager, Bioanalysis  (415) 506-6707  lcrockett@bmrn.com  
+Dinh Diep, Clinical Programmer  (415) 455-7491  ddiep@bmrn.com / BMT-EDT@bmrn.com  
+Virginia Kalagorgevich, Manager, Bioanalysis  (415) 488-3411  vkalegorgevich@bmrn.com  
+Ann Mikhail, Associate Director, Clinical Data Management  415-842-8651  ann.mikhail@bmrn.com  
+
+17 Document History 
+
+Version  Date  Description  Amended By  
+00  03 May 2018  New Document  Matthew Boncato  
+1.0  06 Jan 2020  Remove assays no longer performed at BioMarin and for which there was no 270-301 testing. Include ddPCR testing.  Lucy Crockett  
+2.0  15Dec2020  Update to include iqPCR, ddPCR assay 2, change transfers to occur to CDM/s sFTP server and administrative changes.  Lucy Crockett/ Andrea Van Tuyl  
+
+
+
+Prepared By: 
+
+Lucy Crockett, Manager, Bioanalysis, BioMarin Date 
+Approvals: 
+
+Virginia Kalagorgevich, Manager, Bioanalysis, BioMarin Date 
+Andrea Van Tuyl, Associate Director, Bioanalysis, BioMarin Date 
+Dinh Diep, Associate Director, Clinical Data Systems, BioMarin Date 
+Ann Mikhail, Associate Director, Clinical Data Management, BioMarin Date 
+
+
+Attachment 1: Data Specification Table for BAT text files to BioMarin CDM Table 1: ddPCR Assay 1 (CDM Dataset LBDDPCR) DT Specifications 
+Var. #  Watson LIMS Field Name  Type  Length  Description  Biometrics Field Name  
+1.  Study ID  Char/ Num  7  Identification of the study. Value = ‘270-301’  PROJECT  
+2.  Subject  Char/ Num  9  9-character Subject ID Example: ‘1022-3044’  SUBJECT  
+3.  Visit  Char/ Num  40  Description of visits and visit numbers captured as received on the shipment manifests. Reference Attachment 2.  FOLDERNAME  
+4.  Actual Sampling Date  Char/ Num  9  Example:01-Jan-09  LBSTDTN  
+5.  Actual Sampling Time  Num  8  Actual collection time of sample Example: 10:30:00  LBSTTM  
+6.  Custom ID  Num  17  Numeric accession number from Covance corresponding to barcode on vial Example: '‘1303525019-77’ or ‘130352501977’ ‘130352501977-BAS1’ and ‘130352501977-BAS2’ for child aliquot designation  LBREFID  
+7.  Analyte  Char  60  PBMC DP-ddPCR 1-7-site1 vector DNA_µg PBMC DP-ddPCR 1-7-site1 vector DNA_mio PBMC DP-ddPCR 1-7-site1 vector DNA-qual Whole Blood DP-ddPCR 1-7-site1 vector DNA Whole Blood DP-ddPCR 1-7-site1 vector DNA-qual PBMC DP-ddPCR 1-7-site7 vector DNA_µg PBMC DP-ddPCR 1-7-site7 vector DNA_mio PBMC DP-ddPCR 1-7-site7 vector DNA-qual Whole Blood DP-ddPCR 1-7-site7 vector DNA Whole Blood DP-ddPCR 1-7-site7 vector DNA-qual PBMC DP-ddPCR 1-7-linked1-7 vector DNA_µg PBMC DP-ddPCR 1-7-linked1-7 vector DNA_mio PBMC DP-ddPCR 1-7-linked1-7 vector DNA-qual Whole Blood DP-ddPCR 1-7-linked1-7 vector DNA Whole Blood DP-ddPCR 1-7-linked1-7 vector DNA-qual PBMC ddPCR ITR Fusion Vector DNA_µg PBMC ddPCR ITR Fusion Vector DNA_mio PBMC ddPCR ITR Fusion Vector DNA-qual Whole Blood ddPCR ITR Fusion Vector DNA Whole Blood ddPCR ITR Fusion Vector DNA-qual  LBTEST  
+8.  Result 1  Char  60  Result of the measurement or finding as originally collected or transformed values. Values will be identified as one of the following:  . Numerical Result . ‘N.R.’ (Not Reportable) . ‘NA’ (No numerical assay result)  LBORRES  
+9.  Result 1  Char  60  . ‘Positive, in-range’  LBORRES  
+
+
+
+. ‘Positive, BLQ (<25 copies/DP ddPCR reaction)’ for drop phase ddPCR . ‘Positive, BLQ (<25 and > = 2 copies/ ddPCR reaction)’ for ITR Fusion ddPCR . ‘Positive, BLOD (<2 and >0 copies/ddPCR reaction)’ for ITR Fusion ddPCR . ‘Positive, ALQ (>8000 copies/DP ddPCR reaction)’ for drop phase ddPCR . ‘Positive, ALQ (>6000 copies/ddPCR reaction)’ for ITR Fusion ddPCR . ‘Negative’  
+10.  Concentration Units  Char  50  Transformed data units PBMC: ‘copies/µg DNA’ PBMC: ‘copies/million PBMC’ Whole Blood: ‘copies/mL’  LBORRESU  
+11.  Biological Matrix  Char  20  Type of specimen. Value = ‘PBMC’, ‘Whole Blood’  LBSPEC  
+12.  Result Comment  Char  160  When ‘N.R.’ Not Reportable as reason for missing result. Result Comment = . ‘QNS’ . Any statement within the 160-character limit  LBREASND  
+13.  Run ID  Char/N um  12  The run date in which the sample was tested; example, MDDYY or MMDDYY or MMDDYYYY samples not tested will say ‘00000’ or ‘000000’ or ‘00000000’ or ‘NA’.  RUNID  
+
+1 Row 8 and 9 will be reported in the same column in the data transfer. 
+
+
+Table 2: iqPCR Assay (CDM Dataset LBIQPCR) DT Specifications 
+Var. #  Watson LIMS Field Name  Type  Length  Description  Biometrics Field Name  
+1.  Study ID  Char/Num  7  Identification of the study. Value = ‘270-301’  PROJECT  
+2.  Subject  Char/Num  9  9-character Subject ID Example: ‘1022-3044’  SUBJECT  
+3.  Visit  Char/Num  40  Description of visits and visit numbers captured as received on the shipment manifests. Reference Attachment 2.  FOLDERNAME  
+4.  Actual Sampling Date  Num/Char  11  Example:01-Jan-2018 or 01-Jan-18  LBSTDTN  
+5.  Actual Sampling Time  Num/Char  8  Actual collection time of sample Example: 10:30 or 10:30:00  LBSTTM  
+6.  Custom ID  Num/Char  20  Numeric accession number from Covance corresponding to barcode on vial Example: ‘130352501977’, ‘1234567891’, ‘123456789112’  LBREFID  
+7.  Analyte  Char  50  Short name of lab tests. Plasma: Plasma iqPCR_vector DNA_FVIII-SQ_vg/mL Plasma iqPCR_vector DNA_FVIII-SQ_qual Semen: Semen iqPCR_vector DNA_FVIII-SQ_vg/mL Semen iqPCR_vector DNA_FVIII-SQ_qual  LBTEST  
+8.  Result 1  Char  30  Result of the measurement or finding as originally collected or transformed values. Values will be identified as one of the following: ‘Plasma’ iqPCR vector DNA . ‘N.R.’ (Not Reportable) . ‘BLQ (<2.08E+05 vg/mL)’ . ‘BLD (<1.17E+04 vg/mL)’ . Any numerical from 2.08E+05 to 2.08E+10 . ‘ALQ (>2.08E+10 vg/mL)’  LBORRES  
+‘Semen’ iqPCR vector DNA . ‘N.R.’ (Not Reportable) . ‘BLQ (<2.08E+05 vg/mL)’ . ‘BLD (<2.33E+04 vg/mL)’ . Any numerical from 2.08E+05 to 2.08E+09 . ‘ALQ (>2.08E+09 vg/mL)’  
+9.  Result 1  Char  30  ‘N.R.’ (Not Reportable) Plasma: ‘positive’ or ‘negative’ (defined as BLD) Semen: ‘positive’ or ‘negative’ (defined as BLD)  LBORRES  
+10.  Concentration Units  Char  10  Transformed data units: Plasma: ‘vg/mL’ Semen: ‘vg/mL’  LBORRESU  
+
+
+
+11.  Biological Matrix  Char  10  Type of specimen. Value = ‘Plasma’, ‘Semen’  LBSPEC  
+12.  Result Comment  Char  160  Any statement within the 160-character limit when ‘N.R.’ Not Reportable as reason for missing result. For Example, Result Comment = . ‘QNS’ (Quantity not sufficient)  LBREASND  
+13.  Run ID  Num  3  Numerical value up to 3 digits  RUNID  
+
+1Row 8 and 9 will be reported in the same column for data transfer. 
+Table 3: ddPCR Assay 2 (CDM Dataset LBDDPCR) DT Specifications 
+Var. #  Watson LIMS Field Name  Type  Length  Description  Biometrics Field Name  
+1.  Study ID  Char/ Num  7  Identification of the study. Value = ‘270-301’  PROJECT  
+2.  Subject  Char/ Num  9  9-character Subject ID Example: ‘1022-3044’  SUBJECT  
+3.  Visit  Char/ Num  40  Description of visits and visit numbers captured as received on the shipment manifests. Reference Attachment 2.  FOLDERNAME  
+4.  Actual Sampling Date  Char/ Num  9  Example:01-Jan-09  LBSTDTN  
+5.  Actual Sampling Time  Num  8  Actual collection time of sample Example: 10:30:00  LBSTTM  
+6.  Custom ID  Num  17  Numeric accession number from Covance corresponding to barcode on vial Example: '‘1303525019-77’ or ‘130352501977’ ‘130352501977-BAS1’ and ‘130352501977-BAS2’ for child aliquot designation  LBREFID  
+7.  Analyte  Char  60  PBMC DP-ddPCR 4plex site1 vector DNA_µg PBMC DP-ddPCR 4plex site1 vector DNA_mio PBMC DP-ddPCR 4plex site1 vector DNA_qual PBMC DP-ddPCR 4plex site3 vector DNA_µg PBMC DP-ddPCR 4plex site3 vector DNA_mio PBMC DP-ddPCR 4plex site3 vector DNA_qual PBMC DP-ddPCR 4plex site6 vector DNA_µg PBMC DP-ddPCR 4plex site6 vector DNA_mio PBMC DP-ddPCR 4plex site6 vector DNA_qual PBMC DP-ddPCR 4plex site7 vector DNA_µg PBMC DP-ddPCR 4plex site7 vector DNA_mio PBMC DP-ddPCR 4plex site7 vector DNA_qual PBMC DP-ddPCR 4plex linked 1-3 vector DNA_µg PBMC DP-ddPCR 4plex linked 1-3 vector DNA_mio PBMC DP-ddPCR 4plex linked 1-3 vector DNA_qual PBMC DP-ddPCR 4plex linked 1-6 vector DNA_µg PBMC DP-ddPCR 4plex linked 1-6 vector DNA_mio PBMC DP-ddPCR 4plex linked 1-6 vector DNA_qual PBMC DP-ddPCR 4plex linked 1-7 vector DNA_µg PBMC DP-ddPCR 4plex linked 1-7 vector DNA_mio PBMC DP-ddPCR 4plex linked 1-7 vector DNA_qual PBMC DP-ddPCR 4plex linked 3-6 vector DNA_µg PBMC DP-ddPCR 4plex linked 3-6 vector DNA_mio  LBTEST  
+
+
+
+PBMC DP-ddPCR 4plex linked 3-6 vector DNA_qual PBMC DP-ddPCR 4plex linked 3-7 vector DNA_µg PBMC DP-ddPCR 4plex linked 3-7 vector DNA_mio PBMC DP-ddPCR 4plex linked 3-7 vector DNA_qual PBMC DP-ddPCR 4plex linked 6-7 vector DNA_µg PBMC DP-ddPCR 4plex linked 6-7 vector DNA_mio PBMC DP-ddPCR 4plex linked 6-7 vector DNA_qual  
+8.  Result 1  Char  60  Result of the measurement or finding as originally collected or transformed values. Values will be identified as one of the following: . Numerical Result . ‘N.R.’ (Not Reportable) . ‘NA’ (No numerical assay result)  LBORRES  
+9.  Result 1  Char  60  . ‘Positive, in-range’ . ‘Positive, BLQ (<25 copies/DP ddPCR reaction)’ for drop phase ddPCR . ‘Positive, ALQ (>8000 copies/DP ddPCR reaction)’ for drop phase ddPCR . ‘Negative’  LBORRES  
+10.  Concentration Units  Char  50  Transformed data units PBMC: ‘copies/µg DNA’ PBMC: ‘copies/million PBMC’  LBORRESU  
+11.  Biological Matrix  Char  20  Type of specimen. Value = ‘PBMC’  LBSPEC  
+12.  Result Comment  Char  160  When ‘N.R.’ Not Reportable as reason for missing result. Result Comment = . ‘QNS’ . Any statement within the 160-character limit  LBREASND  
+13.  Run ID  Char/Nu m  12  The run date in which the sample was tested; example, MDDYY, MDDYY-# MMDDYY, MMDDYY-#, MMDDYYYY, or MMDDYYYY-# Samples not tested will say ‘00000’ or ‘000000’ or ‘00000000’ or ‘NA’.  RUNID  
+
+1Row 8 and 9 will be reported in the same column for data transfer. 
+
+
+Attachment 2: Visit Mapping 
+Planned Visits and Visit Mapping of BAT visit to EDC FOLDERNAME 
+Lab Visit Name  Visit Description  
+(LABVISIT)  (FOLDERNAME)  
+SCRN  Screening  
+RESCRN  Smart Re-Screening  
+BASE  Baseline  
+D1  Day 1  
+D4  Day 4  
+D8  Day 8  
+W2  Week 2  
+W3  Week 3  
+W4  Week 4  
+W5  Week 5  
+W6  Week 6  
+W7  Week 7  
+W8  Week 8  
+W9  Week 9  
+W10  Week 10  
+W11  Week 11  
+W12  Week 12  
+W13  Week 13  
+W14  Week 14  
+W15  Week 15  
+W16  Week 16  
+W17  Week 17  
+W18  Week 18  
+W19  Week 19  
+W20  Week 20  
+W21  Week 21  
+W22  Week 22  
+W23  Week 23  
+W24  Week 24  
+W25  Week 25  
+W26  Week 26  
+W27  Week 27  
+W28  Week 28  
+W29  Week 29  
+W30  Week 30  
+W31  Week 31  
+W32  Week 32  
+W33  Week 33  
+W34  Week 34  
+W35  Week 35  
+W36  Week 36  
+W38  Week 38  
+W40  Week 40  
+W42  Week 42  
+W44  Week 44  
+W46  Week 46  
+
+
+
+
+Lab Visit Name  Visit Description  
+(LABVISIT)  (FOLDERNAME)  
+W48  Week 48  
+W50  Week 50  
+W52  Week 52  
+W56  Week 56  
+W60  Week  
+Y2-W61 / W61  Week 61  
+Y2-W62 / W62  Week 62  
+Y2-W63 / W63  Week 63  
+Y2-W64 / W64  Week 64  
+Y2-W65 / W65  Week 65  
+Y2-W66 / W66  Week 66  
+Y2-W67 / W67  Week 67  
+Y2-W68 / W68  Week 68  
+Y2-W69 / W69  Week 69  
+Y2-W70 / W70  Week  
+Y2-W71 / W71  Week 71  
+Y2-W72 / W72  Week 72  
+Y2-W73 / W73  Week 73  
+Y2-W74 / W74  Week 74  
+Y2-W75 / W75  Week 75  
+Y2-W76 / W76  Week 76  
+Y2-W77 / W77  Week 77  
+Y2-W78 / W78  Week 78  
+Y2-W79 / W79  Week 79  
+Y2-W80 / W80  Week  
+Y2-W81 / W81  Week 81  
+Y2-W82 / W82  Week 82  
+Y2-W83 / W83  Week 83  
+Y2-W84 / W84  Week 84  
+Y2-W85 / W85  Week 85  
+Y2-W86 / W86  Week 86  
+Y2-W87 / W87  Week 87  
+Y2-W88 / W88  Week 88  
+Y2-W89 / W89  Week 89  
+Y2-W90 / W90  Week  
+Y2-W91 / W91  Week 91  
+Y2-W92 / W92  Week 92  
+Y2-W93 / W93  Week 93  
+Y2-W94 / W94  Week 94  
+Y2-W95 / W95  Week 95  
+Y2-W96 / W96  Week 96  
+Y2-W97 / W97  Week 97  
+Y2-W98 / W98  Week 98  
+Y2-W99 / W99  Week 99  
+Y2-W100 / W100  Week  
+Y2-W101 / W101  Week 101  
+Y2-W102 / W102  Week 102  
+Y2-W103 / W103  Week 103  
+Y2-W104 / W104  Week 104  
+
+
+
+
+Lab Visit Name  Visit Description  
+(LABVISIT)  (FOLDERNAME)  
+Y3-W / W1  Week  
+Y3-W106 / W106  Week 106  
+Y3-W107 / W107  Week 107  
+Y3-W108 / W108  Week 108  
+Y3-W109 / W109  Week 109  
+Y3-W / W1  Week  
+Y3-W111 / W111  Week 111  
+Y3-W112 / W112  Week 112  
+Y3-W113 / W113  Week 113  
+Y3-W114 / W114  Week 114  
+Y3-W / W1  Week  
+Y3-W116 / W116  Week 116  
+Y3-W117 / W117  Week 117  
+Y3-W118 / W118  Week 118  
+Y3-W119 / W119  Week 119  
+Y3-W / W1  Week  
+Y3-W121 / W121  Week 121  
+Y3-W122 / W122  Week 122  
+Y3-W123 / W123  Week 123  
+Y3-W124 / W124  Week 124  
+Y3-W / W1  Week  
+Y3-W126 / W126  Week 126  
+Y3-W127 / W127  Week 127  
+Y3-W128 / W128  Week 128  
+Y3-W129 / W129  Week 129  
+Y3-W / W1  Week  
+Y3-W131 / W131  Week 131  
+Y3-W132 / W132  Week 132  
+Y3-W133 / W133  Week 133  
+Y3-W134 / W134  Week 134  
+Y3-W / W1  Week  
+Y3-W136 / W136  Week 136  
+Y3-W137 / W137  Week 137  
+Y3-W138 / W138  Week 138  
+Y3-W139 / W139  Week 139  
+Y3-W / W1  Week  
+Y3-W141 / W141  Week 141  
+Y3-W142 / W142  Week 142  
+Y3-W143 / W143  Week 143  
+Y3-W144 / W144  Week 144  
+Y3-W / W1  Week  
+Y3-W146 / W146  Week 146  
+Y3-W147 / W147  Week 147  
+Y3-W148 / W148  Week 148  
+Y3-W149 / W149  Week 149  
+Y3-W / W1  Week  
+Y3-W151 / W151  Week 151  
+Y3-W152 / W152  Week 152  
+Y3-W153 / W153  Week 153  
+
+
+
+
+Lab Visit Name  Visit Description  
+(LABVISIT)  (FOLDERNAME)  
+Y3-W154 / W154  Week 154  
+Y3-W / W1  Week  
+Y3-W156 / W156  Week 156  
+Y4-W157 / W157  Week 157  
+Y4-W158 / W158  Week 158  
+Y4-W159 / W159  Week 159  
+Y4-W / W1  Week  
+Y4-W161 / W161  Week 161  
+Y4-W162 / W162  Week 162  
+Y4-W163 / W163  Week 163  
+Y4-W164 / W164  Week 164  
+Y4-W / W1  Week  
+Y4-W166 / W166  Week 166  
+Y4-W167 / W167  Week 167  
+Y4-W168 / W168  Week 168  
+Y4-W169 / W169  Week 169  
+Y4-W / W1  Week  
+Y4-W171 / W171  Week 171  
+Y4-W172 / W172  Week 172  
+Y4-W173 / W173  Week 173  
+Y4-W174 / W174  Week 174  
+Y4-W / W1  Week  
+Y4-W176 / W176  Week 176  
+Y4-W177 / W177  Week 177  
+Y4-W178 / W178  Week 178  
+Y4-W179 / W179  Week 179  
+Y4-W / W1  Week  
+Y4-W181 / W181  Week 181  
+Y4-W182 / W182  Week 182  
+Y4-W183 / W183  Week 183  
+Y4-W184 / W184  Week 184  
+Y4-W / W1  Week  
+Y4-W186 / W186  Week 186  
+Y4-W187 / W187  Week 187  
+Y4-W188 / W188  Week 188  
+Y4-W189 / W189  Week 189  
+Y4-W / W1  Week  
+Y4-W191 / W191  Week 191  
+Y4-W192 / W192  Week 192  
+Y4-W193 / W193  Week 193  
+Y4-W194 / W194  Week 194  
+Y4-W / W1  Week  
+Y4-W196 / W196  Week 196  
+Y4-W197 / W197  Week 197  
+Y4-W198 / W198  Week 198  
+Y4-W199 / W199  Week 199  
+Y4-W / W200  Week  
+Y4-W201 / W201  Week 201  
+Y4-W202 / W202  Week 202  
+
+
+
+
+Lab Visit Name  Visit Description  
+(LABVISIT)  (FOLDERNAME)  
+Y4-W203 / W203  Week 203  
+Y4-W204 / W204  Week 204  
+Y4-W205 / W205  Week 205  
+Y4-W206 / W206  Week 206  
+Y4-W207 / W207  Week 207  
+Y4-W208 / W208  Week 208  
+Y5-W209 / W209  Week 209  
+Y5-W210 / W210  Week 210  
+Y5-W211 / W211  Week 211  
+Y5-W212 / W212  Week 212  
+Y5-W213 / W213  Week 213  
+Y5-W214 / W214  Week 214  
+Y5-W215 / W215  Week 215  
+Y5-W216 / W216  Week 216  
+Y5-W217 / W217  Week 217  
+Y5-W218 / W218  Week 218  
+Y5-W219 / W219  Week 219  
+Y5-W220 / W220  Week 220  
+Y5-W221 / W221  Week 221  
+Y5-W222 / W222  Week 222  
+Y5-W223 / W223  Week 223  
+Y5-W224 / W224  Week 224  
+Y5-W225 / W225  Week 225  
+Y5-W226 / W226  Week 226  
+Y5-W227 / W227  Week 227  
+Y5-W228 / W228  Week 228  
+Y5-W229 / W229  Week 229  
+Y5-W230 / W230  Week 230  
+Y5-W231 / W231  Week 231  
+Y5-W232 / W232  Week 232  
+Y5-W233 / W233  Week 233  
+Y5-W234 / W234  Week 234  
+Y5-W235 / W235  Week 235  
+Y5-W236 / W236  Week 236  
+Y5-W237 / W237  Week 237  
+Y5-W238 / W238  Week 238  
+Y5-W239 / W239  Week 239  
+Y5-W240 / W240  Week 240  
+Y5-W241 / W241  Week 241  
+Y5-W242 / W242  Week 242  
+Y5-W243 / W243  Week 243  
+Y5-W244 / W244  Week 244  
+Y5-W245 / W245  Week 245  
+Y5-W246 / W246  Week 246  
+Y5-W247 / W247  Week 247  
+Y5-W248 / W248  Week 248  
+Y5-W249 / W249  Week 249  
+Y5-W250 / W250  Week 250  
+Y5-W251 / W251  Week 251  
+
+
+
+
+Lab Visit Name  Visit Description  
+(LABVISIT)  (FOLDERNAME)  
+Y5-W252 / W252  Week 252  
+Y5-W253 / W253  Week 253  
+Y5-W254 / W254  Week 254  
+Y5-W255 / W255  Week 255  
+Y5-W256 / W256  Week 256  
+Y5-W257 / W257  Week 257  
+Y5-W258 / W258  Week 258  
+Y5-W259 / W259  Week 259  
+Y5-W260 / W260  Week 260  
+ETV  Early Termination Visit  
+Unscheduled X*  Unscheduled  
+
+
+*Additional Unscheduled visits for a subject will have a sequential number provided and will be reported as Unscheduled x. (i.e., Unscheduled 01, Unscheduled 12) 
+
+
+Attachment 3: Laboratory Test Identifiers, Analyte, Short, and Long Names 
+Biological Matrix (LBSPEC)  Analyte Name (LBTESTCD)  Lab Test Category (LBCAT)  Lab Test Identifier (LBSPID)  Lab Test Short Name (LBTEST)  
+PBMC  MC17S1  Pharmacokinetics  1064  PBMC DP-ddPCR 1-7-site1 vector DNA_µg  
+PBMC  MC17S1C  Pharmacokinetics  1065  PBMC DP-ddPCR 1-7-site1 vector DNA_mio  
+PBMC  WB17S1Q  Pharmacokinetics  1066  PBMC DP-ddPCR 1-7-site1 vector DNA-qual  
+Whole Blood  WB17S1  Pharmacokinetics  1067  Whole Blood DP-ddPCR 1-7-site1 vector DNA  
+Whole Blood  PL17S7Q  Pharmacokinetics  1068  Whole Blood DP-ddPCR 1-7-site1 vector DNA-qual  
+PBMC  MC17S7  Pharmacokinetics  1073  PBMC DP-ddPCR 1-7-site7 vector DNA_µg  
+PBMC  WB17S7M  Pharmacokinetics  1074  PBMC DP-ddPCR 1-7-site7 vector DNA_mio  
+PBMC  WB17S7Q  Pharmacokinetics  1075  PBMC DP-ddPCR 1-7-site7 vector DNA-qual  
+Whole Blood  WB17S7  Pharmacokinetics  1076  Whole Blood DP-ddPCR 1-7-site7 vector DNA  
+Whole Blood  PL17L17Q  Pharmacokinetics  1077  Whole Blood DP-ddPCR 1-7-site7 vector DNA-qual  
+PBMC  MC17L17  Pharmacokinetics  1082  PBMC DP-ddPCR 1-7-linked1-7 vector DNA_µg  
+PBMC  WB17L17M  Pharmacokinetics  1083  PBMC DP-ddPCR 1-7-linked1-7 vector DNA_mio  
+PBMC  WB17L17Q  Pharmacokinetics  1084  PBMC DP-ddPCR 1-7-linked1-7 vector DNA-qual  
+Whole Blood  WB17L17  Pharmacokinetics  1085  Whole Blood DP-ddPCR 1-7-linked1-7 vector DNA  
+Whole Blood  PL36S3Q  Pharmacokinetics  1086  Whole Blood DP-ddPCR 1-7-linked1-7 vector DNA-qual  
+PBMC  MCPITRF  Pharmacokinetics  1172  PBMC ddPCR ITR Fusion Vector DNA_µg  
+PBMC  MCPITRFC  Pharmacokinetics  1173  PBMC ddPCR ITR Fusion Vector DNA_mio  
+PBMC  MCPITRFQ  Pharmacokinetics  1174  PBMC ddPCR ITR Fusion Vector DNA-qual  
+Whole Blood  WBPITRF  Pharmacokinetics  1175  Whole Blood ddPCR ITR Fusion Vector DNA  
+Whole Blood  WBPITRFQ  Pharmacokinetics  1176  Whole Blood ddPCR ITR Fusion Vector DNA-qual  
+Plasma  PLFVIII  Pharmacokinetics  1296  Plasma iqPCR_vector DNA_FVIII-SQ_vg/mL  
+Plasma  PLFVIIIQ  Pharmacokinetics  1297  Plasma iqPCR_vector DNA_FVIII-SQ_qual  
+Semen  SFVIII  Pharmacokinetics  1298  Semen iqPCR_vector DNA_FVIII-SQ_vg/mL  
+Semen  SFVIIIQ  Pharmacokinetics  1299  Semen iqPCR_vector DNA_FVIII-SQ_qual  
+PBMC  MC4PS1  Pharmacokinetics  1306  PBMC DP-ddPCR 4plex site1 vector DNA_µg  
+PBMC  MC4PS1M  Pharmacokinetics  1307  PBMC DP-ddPCR 4plex site1 vector DNA_mio  
+PBMC  MC4PS1Q  Pharmacokinetics  1308  PBMC DP-ddPCR 4plex site1 vector DNA_qual  
+PBMC  MC4PS3  Pharmacokinetics  1309  PBMC DP-ddPCR 4plex site3 vector DNA_µg  
+PBMC  MC4PS3M  Pharmacokinetics  1310  PBMC DP-ddPCR 4plex site3 vector DNA_mio  
+PBMC  MC4PS3Q  Pharmacokinetics  1311  PBMC DP-ddPCR 4plex site3 vector DNA_qual  
+PBMC  MC4PS6  Pharmacokinetics  1312  PBMC DP-ddPCR 4plex site6 vector DNA_µg  
+PBMC  MC4PS6M  Pharmacokinetics  1313  PBMC DP-ddPCR 4plex site6 vector DNA_mio  
+PBMC  MC4PS6Q  Pharmacokinetics  1314  PBMC DP-ddPCR 4plex site6 vector DNA_qual  
+PBMC  MC4PS7  Pharmacokinetics  1315  PBMC DP-ddPCR 4plex site7 vector DNA_µg  
+PBMC  MC4PS7M  Pharmacokinetics  1316  PBMC DP-ddPCR 4plex site7 vector DNA_mio  
+PBMC  MC4PS7Q  Pharmacokinetics  1317  PBMC DP-ddPCR 4plex site7 vector DNA_qual  
+PBMC  MC4PL13  Pharmacokinetics  1318  PBMC DP-ddPCR 4plex linked 1-3 vector DNA_µg  
+PBMC  MC4PL13M  Pharmacokinetics  1319  PBMC DP-ddPCR 4plex linked 1-3 vector DNA_mio  
+PBMC  MC4PL13Q  Pharmacokinetics  1320  PBMC DP-ddPCR 4plex linked 1-3 vector DNA_qual  
+PBMC  MC4PL16  Pharmacokinetics  1321  PBMC DP-ddPCR 4plex linked 1-6 vector DNA_µg  
+PBMC  MC4PL16M  Pharmacokinetics  1322  PBMC DP-ddPCR 4plex linked 1-6 vector DNA_mio  
+PBMC  MC4PL16Q  Pharmacokinetics  1323  PBMC DP-ddPCR 4plex linked 1-6 vector DNA_qual  
+PBMC  MC4PL17  Pharmacokinetics  1324  PBMC DP-ddPCR 4plex linked 1-7 vector DNA_µg  
+PBMC  MC4PL17M  Pharmacokinetics  1325  PBMC DP-ddPCR 4plex linked 1-7 vector DNA_mio  
+PBMC  MC4PL17Q  Pharmacokinetics  1326  PBMC DP-ddPCR 4plex linked 1-7 vector DNA_qual  
+
+
+
+Biological Matrix (LBSPEC)  Analyte Name (LBTESTCD)  Lab Test Category (LBCAT)  Lab Test Identifier (LBSPID)  Lab Test Short Name (LBTEST)  
+PBMC  MC4PL36  Pharmacokinetics  1327  PBMC DP-ddPCR 4plex linked 3-6 vector DNA_µg  
+PBMC  MC4PL36M  Pharmacokinetics  1328  PBMC DP-ddPCR 4plex linked 3-6 vector DNA_mio  
+PBMC  MC4PL36Q  Pharmacokinetics  1329  PBMC DP-ddPCR 4plex linked 3-6 vector DNA_qual  
+PBMC  MC4PL37  Pharmacokinetics  1330  PBMC DP-ddPCR 4plex linked 3-7 vector DNA_µg  
+PBMC  MC4PL37M  Pharmacokinetics  1331  PBMC DP-ddPCR 4plex linked 3-7 vector DNA_mio  
+PBMC  MC4PL37Q  Pharmacokinetics  1332  PBMC DP-ddPCR 4plex linked 3-7 vector DNA_qual  
+PBMC  MC4PL67  Pharmacokinetics  1333  PBMC DP-ddPCR 4plex linked 6-7 vector DNA_µg  
+PBMC  MC4PL67M  Pharmacokinetics  1334  PBMC DP-ddPCR 4plex linked 6-7 vector DNA_mio  
+PBMC  MC4PL67Q  Pharmacokinetics  1335  PBMC DP-ddPCR 4plex linked 6-7 vector DNA_qual  
+
+
+
+Attachment 4: BAS Validated Watson LIMS Custom Report Export Templates 
+1. For all analyte data files use: 
+. Not applicable, Watson LIMS will not be used for data analysis and reporting in BMN 270-301. 
+
+
+Attachment 5: BAS Example ddPCR and iqPCR File Naming and Data Transfer File Convention 
+Analyte  Saved Data File Name in BAS Validated Repository  Zipped Data File Name  
+PBMC DP-ddPCR 1-7-site1 vector DNA_µg  270-301_ddPCR_1-7_CPT_[date]  270-301_ddPCR_[CPT or WB]_[date]_[file transfer-type-test, interim, final]  
+PBMC DP-ddPCR 1-7-site1 vector DNA_mio  
+PBMC DP-ddPCR 1-7-site1 vector DNA-qual  
+PBMC DP-ddPCR 1-7-site7 vector DNA_µg  
+PBMC DP-ddPCR 1-7-site7 vector DNA_mio  
+PBMC DP-ddPCR 1-7-site7 vector DNA-qual  
+PBMC DP-ddPCR 1-7-linked1-7 vector DNA_µg  
+PBMC DP-ddPCR 1-7-linked1-7 vector DNA_mio  
+PBMC DP-ddPCR 1-7-linked1-7 vector DNA-qual  
+Whole Blood DP-ddPCR 1-7-site1 vector DNA  270-301_ddPCR_1-7_WB_[date]  
+Whole Blood DP-ddPCR 1-7-site1 vector DNA-qual  
+Whole Blood DP-ddPCR 1-7-site7 vector DNA  
+Whole Blood DP-ddPCR 1-7-site7 vector DNA-qual  
+Whole Blood DP-ddPCR 1-7-linked1-7 vector DNA  
+Whole Blood DP-ddPCR 1-7-linked1-7 vector DNA-qual  
+PBMC ddPCR ITR Fusion Vector DNA_µg  270-301_ddPCR_ITR Fusion_CPT_[date]  
+PBMC ddPCR ITR Fusion Vector DNA_mio  
+PBMC ddPCR ITR Fusion Vector DNA-qual  
+Whole Blood ddPCR ITR Fusion Vector DNA  270-301_ddPCR_ITR Fusion_WB_[date]  
+Whole Blood ddPCR ITR Fusion Vector DNA-qual  
+Plasma iqPCR_vector DNA_FVIII-SQ_vg/mL  270-301_iqPCR_plasma_[date]  270301_iqPCR_[plasma or semen]_[date]_[file transfer type-test, interim, final]  
+Plasma iqPCR_vector DNA_FVIII-SQ_qual  
+Semen iqPCR_vector DNA_FVIII-SQ_vg/mL  270-301_iqPCR_semen_[date]  
+Semen iqPCR_vector DNA_FVIII-SQ_qual  
+PBMC DP-ddPCR 4plex site1 vector DNA_µg  270-301_ddPCR_4plex 1-3-6­7_CPT_[date]  270-301_ddPCR_[CPT]_[date]_ [file transfer-type-test, interim, final]  
+PBMC DP-ddPCR 4plex site1 vector DNA_mio  
+PBMC DP-ddPCR 4plex site1 vector DNA_qual  
+PBMC DP-ddPCR 4plex site3 vector DNA_µg  
+PBMC DP-ddPCR 4plex site3 vector DNA_mio  
+PBMC DP-ddPCR 4plex site3 vector DNA_qual  
+PBMC DP-ddPCR 4plex site6 vector DNA_µg  
+PBMC DP-ddPCR 4plex site6 vector DNA_mio  
+PBMC DP-ddPCR 4plex site6 vector DNA_qual  
+PBMC DP-ddPCR 4plex site7 vector DNA_µg  
+PBMC DP-ddPCR 4plex site7 vector DNA_mio  
+PBMC DP-ddPCR 4plex site7 vector DNA_qual  
+PBMC DP-ddPCR 4plex linked 1-3 vector DNA_µg  
+PBMC DP-ddPCR 4plex linked 1-3 vector DNA_mio  
+PBMC DP-ddPCR 4plex linked 1-3 vector DNA_qual  
+PBMC DP-ddPCR 4plex linked1-6 vector DNA_µg  
+PBMC DP-ddPCR 4plex linked 1-6 vector DNA_mio  
+PBMC DP-ddPCR 4plex linked 1-6 vector DNA_qual  
+PBMC DP-ddPCR 4plex linked 1-7 vector DNA_µg  
+PBMC DP-ddPCR 4plex linked 1-7 vector DNA_mio  
+PBMC DP-ddPCR 4plex linked 1-7 vector DNA_qual  
+PBMC DP-ddPCR 4plex linked 3-6 vector DNA_µg  
+PBMC DP-ddPCR 4plex linked 3-6 vector DNA_mio  
+PBMC DP-ddPCR 4plex linked 3-6 vector DNA_qual  
+PBMC DP-ddPCR 4plex linked 3-7 vector DNA_µg  
+PBMC DP-ddPCR 4plex linked 3-7 vector DNA_mio  
+PBMC DP-ddPCR 4plex linked 3-7 vector DNA_qual  
+PBMC DP-ddPCR 4plex linked 6-7 vector DNA_µg  
+
+
+
+Analyte  Saved Data File Name in BAS Validated Repository  Zipped Data File Name  
+PBMC DP-ddPCR 4plex linked 6-7 vector DNA_mio  
+PBMC DP-ddPCR 4plex linked 6-7 vector DNA_qual  
+
+
+
+
+

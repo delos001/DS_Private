@@ -1,0 +1,346 @@
+---
+title: "270-301 Covance Topline Metrics"
+author: "Jason Delosh"
+date: "13 Nov 2020"
+output: 
+  html_document:
+    toc: yes
+    toc_float: true
+    highlight: zenburn
+    theme: united
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+library(knitr); library(kableExtra); library(ggplot2)
+```
+
+## **Introduction**
+
+The purpose of the Covance external lab topline metrics report is to identify missing lab results for a subset of laboratory tests specified in the [Central Lab Topline Metrics specification document](https://bmrn.sharepoint.com/:x:/r/sites/BIO/_layouts/15/Doc.aspx?sourcedoc=%7B983521ED-87A3-4D8F-8EF7-563296C445D4%7D&file=270-301_CentralLab_Topline_Metrics%2012OCT2020.xlsx&wdLOR=c6B781E47-0209-468F-BE2E-11D9FDD2A2BB&action=default&mobileredirect=true&cid=1e97e643-f818-41a5-a12d-eec4999c92cc), dated 13Oct2020.  Initial analysis identified a significant number of subjects where one or more analyte results were missing for the specified Covance Lab Analyte.
+
+Discussions from the 30Oct2020 meeting determined further exploration is needed to determine if the specification document needed to be updated to more accurately identify tests of interest.  The resulting exploration identified tests with distinct LBSPIDs which only differed in the timing of the test (ie: normal vs. expedited status).
+
+Early discussions identified the possibility that there was a different lab system with a data set that contained correct HLA Genotype testing status compared to the ACE data that is provided to BioMarin from Covance via sFTP.  However, Clinical Operations did not identify a system that met these claims.  They did produce a raw csv file directly from Blood Works Lab, but it was initially confirmed to be the same file that is sent to Covance, mapped, and included in the SAS data set, stored in ACE, that is referenced above.  The mapping of this raw file is specified in the DTS and should contain identical data.
+
+The DM team attempted to contact internal SMEs and the Covance Project Manager to identify the root cause of the missing test results.  The topic was discussed during a call conducted with Covance on 11 Nov 2020.  The Covance Project Manager was not familiar with HLA testing protocols, but did identify a mapping error and four missing tests in the DTS.  Further inspection discovered these errors and omissions were related to HLA lab tests.
+
+Due to time lines associated with this anlaysis, it was decided that this analysis would utilize the raw csv HLA file from Blood Works lab in lieu of ACE lab data for HLA testing.
+
+To maintain all blinding, all laboratory results have been removed from this analysis.
+
+### **Purpose:**
+The purpose is to re-run the anlsysis using the raw HLA Blood Works csv file to identify missing lab results in accordance with 270-301_CentralLab_Topline_Metrics specification document.
+
+### **Inputs:**
+* 270-301 EDC SAS on Demand exported data:
+    * 'sv.sas7bdat'   =  subject visit data
+    * 'ds.sas7bdat'   = subject disposition data
+    * 'dsic.sas7bdat' = informed consent data
+    * 'dssh.sas7bdat' = previous study history data
+    * 'dsss.sas7bdat' =  screening status
+    * 'ie.sas7bdat'   =  eligibility data
+
+* External lab data:
+  * 'bmn_270301_covance_lab_12oct20.sas7bdat'
+  * 'bmn_270301_lb_blnd_fviii_12oct20.sas7bdat'
+  * 'bmn_270301_bloodworks_hla_11Feb2020.csv'
+  * 'BMN 270-301_bloodworks_mutation_11Feb2020.csv'
+
+
+
+
+### **Source Scripts**
+'270-301_CovanceTopLineMetrics.R'
+```{r, include=FALSE}
+source("./CovanceToplineMetrics/270-301_CovanceTopLineMetrics.R", 
+       local = knitr::knit_global())
+```
+
+
+## **Data Review**
+
+### **Subjects**
+For this study, `r length(svAnchorData$Subject)` subjects signed an Informed Consent.  Some subjects did not complete D1 visit but are not designated as Screen Failure in the EDC.  
+```{r, echo=FALSE}
+noSF = svCompliance %>%
+  dplyr::filter(is.na(Day_1) & SCRNFAIL_COD == 'N') %>%
+  dplyr::select(Subject) %>% 
+  unique()
+
+kable(noSF, caption = 'No D1, No SF Designation',
+      format = 'html', table.attr = "style='width:20%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+```
+
+
+Only those subjects who completed the Day 1 visit (`r length(svAnchorData$Day_1[!is.na(svAnchorData$Day_1)])`) were included in the analysis.  There was no sub-setting based on consent to Genetic or Exploratory Genetic. Of these subjects, `r length(svAnchorData$PSHSTAT[svAnchorData$PSHSTAT == 'Rollover' & !is.na(svAnchorData$Day_1)])` are rollover subjects.  It was noted that the rollover status is not entered in the EDC for `r length(svAnchorData$PSHSTAT[is.na(svAnchorData$PSHSTAT)])` subjects.
+
+
+```{r, echo=FALSE, results = 'asis'}
+## create subset of anchorData that just contains subjects who completed D1
+svAnchorDataD1 = svAnchorData %>%
+  dplyr::filter(!is.na(Day_1))
+
+kable(table(svAnchorDataD1$PSHSTAT, svAnchorDataD1$PSTUDY), 
+      caption = 'Day1 Complete: Direct vs Rollover by Study',
+      format = 'html', table.attr = "style='width:30%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+
+```
+
+The number of unique subjects present in each lab data set is shown below:
+*'bmn_270301_covance_lab_12oct20.sas7bdat: `r length(unique(covLab_raw$SUBJECT))`
+  * bmn_270301_lb_blnd_fviii_12oct20.sas7bdat: `r length(unique(blnd_fviii_raw$SUBJECT))`
+  * bmn_270301_bloodworks_hla_11Feb2020.csv: `r length(unique(bwHLA_raw$Subject.ID))`
+  * BMN 270-301_bloodworks_mutation_11Feb2020.csv: `r length(unique(bwMutation_raw$Sample.ID))`
+
+
+During 3 Nov 2020 meeting, CLO PM, Jayson Andrews noted that Blood Works lab will not correct incorrect subject IDs.  The implication is that some lab results reflecting as missing in the original analysis output may be because of incorrect subject IDs.  A comparison was run against Covance and Bloodworks data sets, and the outcome is shown in the table below.
+
+The two Covance subjects are screen failures and were later re-screened and assigned new subject numbers, 1469-3981 and 0003-39991 respectively.  Covance was requested to update these subject identifiers in their system on 5 Nov 2020. These two subjects are also incorrect in the Blood Works file.
+
+Resolution of the Blood Works subject IDs required linking accession numbers from the incorrect Subject ID to the correct Subject ID.  For example, Subject 1781-3905 samples accession number 6602060219 is linked to subject 1781-3904 in the Covance lab data sets.  A programming fix to account for these discrepancies was applied to the new analysis, and these are listed below for reference.
+
+Observation with a date in the Day_1 column are subjects who (when linked via accession number) completed a Day_1 visit but are incorrect in the vendor database.
+```{r, echo=FALSE}
+
+subCompare1 = Covance_ACE_final %>% 
+  dplyr::select(SUBJECT) %>% 
+  unique() %>%
+  dplyr::anti_join(svAnchorData[, c('Subject')], 
+                   by = c('SUBJECT' = 'Subject')) %>%
+  dplyr::mutate(Source = 'Covance')
+
+subCompare2 = bwMutation_final %>% 
+  dplyr::select(SUBJECT, SUBJECT_fix) %>% 
+  unique() %>%
+  dplyr::anti_join(svAnchorData[, c('Subject')], 
+                   by = c('SUBJECT' = 'Subject')) %>%
+  dplyr::mutate(Source = 'Blood Works')
+
+subCompare3 = bwHLA_final %>% 
+  dplyr::select(SUBJECT, SUBJECT_fix) %>% 
+  unique() %>%
+  dplyr::anti_join(svAnchorData[, c('Subject')], 
+                   by = c('SUBJECT' = 'Subject')) %>%
+  dplyr::mutate(Source = 'Blood Works')
+
+subCompareAll = dplyr::bind_rows(subCompare1, subCompare2, subCompare3) %>%
+  unique()  %>%
+  dplyr::left_join(svAnchorData[, c('Subject', 'Day_1')],
+                   by = c('SUBJECT_fix' = 'Subject'))
+
+kable(subCompareAll, caption = 'Subject IDs in Lab Data but not in EDC',
+      format = 'html', table.attr = "style='width:80%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+      
+```
+
+
+### **Visit Data**
+The [Central Lab Topline Metrics specification document](https://bmrn.sharepoint.com/:x:/r/sites/BIO/_layouts/15/Doc.aspx?sourcedoc=%7B983521ED-87A3-4D8F-8EF7-563296C445D4%7D&file=270-301_CentralLab_Topline_Metrics%2012OCT2020.xlsx&wdLOR=c6B781E47-0209-468F-BE2E-11D9FDD2A2BB&action=default&mobileredirect=true&cid=1e97e643-f818-41a5-a12d-eec4999c92cc) specified test results for Screening and Baseline visits.  Since the protocol allows for Re-screening option, the Smart Re-screening visits were also included in the data set.  After filtering for subjcts who completed Day 1 procedures, the counts of visits included are as follows:
+
+
+```{r, echo=FALSE}
+incVisits = svCompliance %>%
+  dplyr::filter(!is.na(Day_1)) %>% 
+  dplyr::filter(FolderName %in% visitFilter) %>%
+  dplyr::filter(Visit_Expected == 'Yes')
+  
+kable(table(incVisits$OID), caption = 'Expected Visits by OID',
+      format = 'html', table.attr = "style='width:30%;'",
+      col.names = c("Visit OID", "Freq")) %>%
+  kable_classic(full_width = T, position = 'center',)
+      
+```
+
+
+### **Lab Data:**
+
+Central Lab Topline Metrics specification document, dated 13Oct2020, outlines the following LBSPIDs to be used.  Please note the last three LBSPIDs are temporary identifiers that are not currently listed in the specification document.  These will be discussed later in the report.
+```{r, echo=FALSE}
+kable(tlmSpecsdf, caption = 'Manual Coding Genotyping Dataset',
+      format = 'html', table.attr = "style='width:80%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+```
+
+### **FVIII Activity**
+In the initial analysis presented on 30 Oct 2020, 53 FVIII Activity Baseline tests results were reported missing.  Further review of the specs identified duplicate testing types: FVIII Activity Chromogenic vs. FVIII Activity Chormogenic Expedited, and Factor VIII Activity One Stage vs. FVIII Activity OSC Expedited.  When accounting for these, the missing FVIII Activity Baseline test results were reduced significantly.  The table below shows the current mapping to reduce duplicate tests.
+
+```{r, echo=FALSE}
+kable(labSkeleton[1:3], caption = 'Manual Coding Genotyping Dataset',
+      format = 'html', table.attr = "style='width:80%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+```
+
+### **ACE Covance Missing Analytes**
+Comparing the next two tables shows there are missing analytes within the HLA lab Sub-category.  Specifically, all HLA "non-excluded alleles" tests are not present (868, 869, 870).  
+
+```{r echo=FALSE}
+
+CovGenoList = covLab_raw %>%
+  dplyr::filter(grepl('Geno', LBSCAT)) %>%
+  dplyr::select(LBTEST, LBSPID) %>%
+  unique()
+
+kable(CovGenoList, caption = 'HLA Tests Present in ACE Covance Data',
+      format = 'html', table.attr = "style='width:80%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+```
+
+
+```{r echo=FALSE}
+
+kable(bwHLA_LBSPIDdf, caption = 'Specifications: HLA Test Names and Corresponding LBSPID',
+      format = 'html', table.attr = "style='width:80%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+
+```
+
+Further, the Blood Works raw csv file data reveals testing results for an analyte not currently present in the DTS (shown below).  These test correspond to those identified by Covance as missing during the 11 Nov 2020 vendor call.  Since these were designated as missing from the DTS and they fall within the HLA category, they were included in this analysis using by manually assigning a psuedo-LBSPID of 9991, 9992, 9993.
+```{r, echo=FALSE}
+bwHLA_spidNA = bwHLA %>%
+  dplyr::select(LBSPID, LBTEST) %>%
+  dplyr::filter(LBSPID %in% c(9991, 9992, 9993)) %>%
+  unique()
+
+kable(bwHLA_spidNA, caption = 'Lab Tests not Specified in the DTS: Pseudo-LBSPID',
+      format = 'html', table.attr = "style='width:80%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+```
+
+### **DTS Mapping**
+As mentioned in the introduction, a mapping error has been identified in the DTS.  Manual comparison of the DTS and HLA analyte results revealed that HLDPB1A1, which corresponds to HLA genotype, locus = DPB1A1, contained results for the DRB1 locus and allele.  These are believed to be another source of error that produced the large number of missing results for the HLA analyte group in the initial analysis. To account for these errors, the Blood Works HLA raw csv file was used in this analysis (instead of the Covance ACE data) and all HLA lab subcategory results from the ACE data set were removed.  
+
+### **Bloodworks Mutation**
+BMN 270-301_bloodworks_mutation_11Feb2020.csv does not contain an LBSPID, so these were manually coded.  Lab test names do not match the Data Transfer Specification document so these were also manually coded.  
+
+
+```{r, echo=FALSE}
+kable(bwMutation_LBSPID, caption = 'Manual Coding Genotyping Dataset',
+      format = 'html', table.attr = "style='width:80%;'") %>%
+  kable_classic(full_width = T, position = 'center',)
+```
+
+
+### **Defining "Results Present"**
+
+For the two Covance ACE data sets, (bmn_270301_covance_lab_12oct20, bmn_270301_lb_blnd_fviii_12oct20) lab results were defined as missing if the either lab result field was blank or the lab result status was "NOT DONE". 
+
+For the Blood Works HLA data set, a result was assumed to be present if at least one allele result was present on at least one chromosome.
+
+For Blood Works Mutation data set, each row contains multiple tests so a test result was assumed to be present if "Tested" was present at the beginning of the row for all testing columns.
+
+The table below shows the status frequency for all combined lab data sets.
+
+```{r, echo=FALSE}
+kable(table(LabBindAll_NoResults$LBSTAT), caption = 'Results Status Options: All Data Sets',
+      format = 'html', table.attr = "style='width:80%;'",
+      col.names = c("Status", "Freq")) %>%
+  kable_classic(full_width = T, position = 'center',)
+```
+
+
+### **Covance Topline Metrics Output**
+
+The updates described above produced considerable changes for the missing test results.
+```{r, echo=FALSE}
+kable(covTLM_colapse, caption = 'Subjects Missing One or More Lab Analyte SPID',
+      format = 'html', table.attr = "style='width:100%;'",) %>%
+      column_spec(column = 1, width = '3in') %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = F, position = 'center',)
+```
+## **Missing HLA Genotype Results**
+
+While there is a notable reduction in missing test results for HLA Gentoping, this category still represents a significant proportion of subjects that completed Day 1 activities.  Therefore, review of missing tests results is warranted and presented below.
+
+```{r, echo=FALSE}
+covTLM_filter_HLA = covTLM_filter %>%
+  dplyr::filter(Covance_Lab_Analyte == 'HLA_Genotype')
+```
+
+
+In the table below, all missing HLA Genotype tests, (`r length(covTLM_filter_HLA$Results_Present)`), are tabulated.  This includes the HLA-DQA1 alleles, for which a pseudo-LBSPID was added to include them in this analysis.  While the number of missing results are reduced, we observe that most of the alleles are not missing at random suggesting additional rules determine whether a sample is required to be tested, and therefore truly missing.
+
+```{r, echo=FALSE, , fig.cap = ""}
+ggplot(covTLM_filter_HLA, aes(x = LBTEST_eqv)) + 
+  geom_bar(fill = 'light blue') + 
+  geom_text(aes(label = ..count..),
+            stat = 'count',
+            position = position_stack(vjust = 0.5)) + 
+  ggtitle(label = 'Count of Missing HLA Samples') +
+  labs(x = 'HLA Test Name',
+       y = 'Count') +
+  scale_x_discrete(labels = function(x) lapply(strwrap(x, 
+					       width = 30, 
+					       simplify = FALSE), 
+				       paste, 
+				       collapse = "\n")) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r, echo=FALSE}
+covTLM_filter_HLA_colapse = covTLM_filter_HLA %>%
+  dplyr::select(LBTEST_eqv, Subject) %>%
+  unique() %>%
+  dplyr::group_by(LBTEST_eqv) %>%
+  dplyr::summarise(Subject2 = paste0(Subject, collapse = ', ')) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate(Subject_Count = stringr::str_count(Subject2, ',') + 1) %>%
+  dplyr::rename('Covance Lab Test Name' = LBTEST_eqv,
+                'Subjects with Missing Data' = Subject2)
+
+kable(covTLM_filter_HLA_colapse, 
+      caption = 'Subjects Missing One or More HLA Lab Analyte Result',
+      format = 'html', table.attr = "style='width:100%;'",) %>%
+      column_spec(column = 1, width = '3in') %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = F, position = 'center',)
+```
+
+
+
+
+For the missing HLA results shown above, the table below shows the breakdown by Subject ID.
+```{r, echo=FALSE}
+covTLM_filter_HLA2 = covTLM_filter_HLA %>%
+  dplyr::group_by(Subject) %>% 
+  dplyr::summarise(MissingCount = n()) %>%
+  dplyr::arrange(desc(MissingCount))
+
+kable(covTLM_filter_HLA2, caption = 'Subjects Missing One or More Lab Analyte SPID',
+      format = 'html', table.attr = "style='width:100%;'",) %>%
+      column_spec(column = 1, width = '3in') %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = F, position = 'center',)
+```
+After performing a manual review of the subject IDs listed above, anomalies were noted.  Subject 1583-3001 is not present in the Blood Works HLA raw file but is present in the Covance file with a comment entry indicating no specimen received for HLA samples.  Subjects 1732-3917, 1732-3926 and 1821-3926, on the other hand, are not present in the Blood Works HLA raw csv file and have no entry for HLA testing in the ACE Covance file.  
+
+And most curiously, subject 1733-3907 is not present in the Blood Works HLA raw file yet has entries in the Covance ACE file that indicate results are present.  In the the work around described above to account of DTS issues, all HLA labs entries were excluded from the Covance ACE file.  However, HLA-DPB1,EDTAwb-579RPT is not assigned an LBSPID in the data set so this was not excluded, but with no LBSPID, the subject still reflects all results missing.
+
+## **Conclusion**
+
+A number of programming changes were incorporated into this analysis.     
+
+1. Subjects included in the analysis were subset from all subjects who completed the screening visit to all subjects who completed Day 1 activities
+2. Manually adjusting LBSPIDs to account for tests who's LBSPID different based only on the priority of the lab
+3. A new data set was used and HLA tests excluded from the Covance ACE data
+4. Manual addition of test LBSPIDs for missing tests
+5. Manual correction of mapping
+
+The outcome was a reduction in missing lab results, specifically for the FVIII Gentotype and HLA Gentotype tests. However, the output required significant work-arounds and even with these work-arounds, anomalies still exist that require investigation.  Further, it appears that there the specification document needs further update to incorporate testing rules, with respect to the HLA samples.  The DM team has attempted to identify SMEs that can help with this.  At this time, it is recommended that no further work-arounds are implemented until the DTS can be updated and questions about HLA testing can be obtained.
+
+### Suggested Action Items
+* Correct Subject IDs in Blood Works system: there are incorrect subject ID's in Blood Works data sets that will be included in the study analysis that currently have to be manually changed
+* Update DTS to include missing HLA tests
+* Update DTS to correct mapping for HLA tests (locus/allele DPB1A1 and DRB1)
+* Identify HLA testing rules that may account for non-random missing data
+
+Upon update of DTS:
+* Update this analysis to exclude existing work-arounds utilizing raw Blood Works csv file.
+

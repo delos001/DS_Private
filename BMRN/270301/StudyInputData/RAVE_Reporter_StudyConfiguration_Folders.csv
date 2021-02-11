@@ -1,0 +1,140 @@
+Name,OID,Parent Folder,Access,Start,Target,End,Over,Close,Reusable
+Screening ,SCR,NoParentFolder,,,30,1,1,,FALSE
+Prior Screening Information ,DSSF,NoParentFolder,,,,,,,FALSE
+Smart Re-Screening ,SCRS,NoParentFolder,,,30,1,1,,FALSE
+Baseline ,BASE,NoParentFolder,,,7,1,1,,FALSE
+Week 1 ,W1P,NoParentFolder,,,,,,,FALSE
+Day 1 ,D1,Week 1,,,0,0,5,,FALSE
+Day 4 ,D4,Week 1,,,3,2,5,,FALSE
+Day 8 ,D8,Week 1,,,7,2,5,,FALSE
+Year 1 ,Y1,NoParentFolder,,,,,,,FALSE
+Week 2 ,W2,Year 1,,,14,2,5,,FALSE
+Week 3 ,W3,Year 1,,,21,2,5,,FALSE
+Week 4 ,W4,Year 1,,,28,2,5,,FALSE
+Week 5 ,W5,Year 1,,,35,2,5,,FALSE
+Week 6 ,W6,Year 1,,,42,2,5,,FALSE
+Week 7 ,W7,Year 1,,,49,2,5,,FALSE
+Week 8 ,W8,Year 1,,,56,2,5,,FALSE
+Week 9 ,W9,Year 1,,,63,2,5,,FALSE
+Week 10 ,W10,Year 1,,,70,2,5,,FALSE
+Week 11 ,W11,Year 1,,,77,2,5,,FALSE
+Week 12 ,W12,Year 1,,,84,2,5,,FALSE
+Week 13 ,W13,Year 1,,,91,2,5,,FALSE
+Week 14 ,W14,Year 1,,,98,2,5,,FALSE
+Week 15 ,W15,Year 1,,,105,2,5,,FALSE
+Week 16 ,W16,Year 1,,,112,2,5,,FALSE
+Week 17 ,W17,Year 1,,,119,2,5,,FALSE
+Week 18 ,W18,Year 1,,,126,2,5,,FALSE
+Week 19 ,W19,Year 1,,,133,2,5,,FALSE
+Week 20 ,W20,Year 1,,,140,2,5,,FALSE
+Week 21 ,W21,Year 1,,,147,2,5,,FALSE
+Week 22 ,W22,Year 1,,,154,2,5,,FALSE
+Week 23 ,W23,Year 1,,,161,2,5,,FALSE
+Week 24 ,W24,Year 1,,,168,2,5,,FALSE
+Week 25 ,W25,Year 1,,,175,2,5,,FALSE
+Week 26 ,W26,Year 1,,,182,2,5,,FALSE
+Week 27 ,W27,Year 1,,,189,2,5,,FALSE
+Week 28 ,W28,Year 1,,,196,2,5,,FALSE
+Week 29 ,W29,Year 1,,,203,2,5,,FALSE
+Week 30 ,W30,Year 1,,,210,2,5,,FALSE
+Week 31 ,W31,Year 1,,,217,2,5,,FALSE
+Week 32 ,W32,Year 1,,,224,2,5,,FALSE
+Week 33 ,W33,Year 1,,,231,2,5,,FALSE
+Week 34 ,W34,Year 1,,,238,2,5,,FALSE
+Week 35 ,W35,Year 1,,,245,2,5,,FALSE
+Week 36 ,W36,Year 1,,,252,2,5,,FALSE
+Week 38 ,W38,Year 1,,,266,7,5,,FALSE
+Week 40 ,W40,Year 1,,,280,7,5,,FALSE
+Week 42 ,W42,Year 1,,,294,7,5,,FALSE
+Week 44 ,W44,Year 1,,,308,7,5,,FALSE
+Week 46 ,W46,Year 1,,,322,7,5,,FALSE
+Week 48 ,W48,Year 1,,,336,7,5,,FALSE
+Week 50 ,W50,Year 1,,,350,7,5,,FALSE
+Week 52 ,W52,Year 1,,,364,7,5,,FALSE
+Year 2 ,Y2,NoParentFolder,,,,,,,FALSE
+Week 56 ,W56,Year 2,,,392,14,5,,FALSE
+Week 60 ,W60,Year 2,,,420,14,5,,FALSE
+Week 64 ,W64,Year 2,,,448,14,5,,FALSE
+Week 65 ,W65,Year 2,,,455,14,5,,FALSE
+Week 68 ,W68,Year 2,,,476,14,5,,FALSE
+Week 72 ,W72,Year 2,,,504,14,5,,FALSE
+Week 76 ,W76,Year 2,,,532,14,5,,FALSE
+Week 78 ,W78,Year 2,,,546,14,5,,FALSE
+Week 80 ,W80,Year 2,,,560,14,5,,FALSE
+Week 84 ,W84,Year 2,,,588,14,5,,FALSE
+Week 88 ,W88,Year 2,,,616,14,5,,FALSE
+Week 91 ,W91,Year 2,,,637,14,5,,FALSE
+Week 92 ,W92,Year 2,,,644,14,5,,FALSE
+Week 96 ,W96,Year 2,,,672,14,5,,FALSE
+Week 100 ,W100,Year 2,,,700,14,5,,FALSE
+Week 104 ,W104,Year 2,,,728,14,5,,FALSE
+Year 3 ,Y3,NoParentFolder,,,,,,,FALSE
+Week 110 ,W110,Year 3,,,770,14,5,,FALSE
+Week 116 ,W116,Year 3,,,812,14,5,,FALSE
+Week 117 ,W117,Year 3,,,819,14,5,,FALSE
+Week 122 ,W122,Year 3,,,854,14,5,,FALSE
+Week 128 ,W128,Year 3,,,896,14,5,,FALSE
+Week 130 ,W130,Year 3,,,910,14,5,,FALSE
+Week 134 ,W134,Year 3,,,938,14,5,,FALSE
+Week 140 ,W140,Year 3,,,980,14,5,,FALSE
+Week 143 ,W143,Year 3,,,1001,14,5,,FALSE
+Week 146 ,W146,Year 3,,,1022,14,5,,FALSE
+Week 152 ,W152,Year 3,,,1064,14,5,,FALSE
+Week 156 ,W156,Year 3,,,1092,14,5,,FALSE
+Year 4 ,Y4,NoParentFolder,,,,,,,FALSE
+Week 158 ,W158,Year 4,,,1106,14,5,,FALSE
+Week 162 ,W162,Year 4,,,1134,14,5,,FALSE
+Week 164 ,W164,Year 4,,,1148,14,5,,FALSE
+Week 168 ,W168,Year 4,,,1176,14,5,,FALSE
+Week 169 ,W169,Year 4,,,1183,14,5,,FALSE
+Week 170 ,W170,Year 4,,,1190,14,5,,FALSE
+Week 174 ,W174,Year 4,,,1218,14,5,,FALSE
+Week 176 ,W176,Year 4,,,1232,14,5,,FALSE
+Week 180 ,W180,Year 4,,,1260,14,5,,FALSE
+Week 182 ,W182,Year 4,,,1274,14,5,,FALSE
+Week 186 ,W186,Year 4,,,1302,14,5,,FALSE
+Week 188 ,W188,Year 4,,,1316,14,5,,FALSE
+Week 192 ,W192,Year 4,,,1344,14,5,,FALSE
+Week 194 ,W194,Year 4,,,1358,14,5,,FALSE
+Week 195 ,W195,Year 4,,,1365,14,5,,FALSE
+Week 198 ,W198,Year 4,,,1386,14,5,,FALSE
+Week 200 ,W200,Year 4,,,1400,14,5,,FALSE
+Week 204 ,W204,Year 4,,,1428,14,5,,FALSE
+Week 206 ,W206,Year 4,,,1442,14,5,,FALSE
+Week 208 ,W208,Year 4,,,1456,14,5,,FALSE
+Year 5 ,Y5,NoParentFolder,,,,,,,FALSE
+Week 212 ,W212,Year 5,,,1484,14,5,,FALSE
+Week 214 ,W214,Year 5,,,1498,14,5,,FALSE
+Week 218 ,W218,Year 5,,,1526,14,5,,FALSE
+Week 220 ,W220,Year 5,,,1540,14,5,,FALSE
+Week 221 ,W221,Year 5,,,1547,14,5,,FALSE
+Week 224 ,W224,Year 5,,,1568,14,5,,FALSE
+Week 226 ,W226,Year 5,,,1582,14,5,,FALSE
+Week 230 ,W230,Year 5,,,1610,14,5,,FALSE
+Week 232 ,W232,Year 5,,,1624,14,5,,FALSE
+Week 234 ,W234,Year 5,,,1638,14,5,,FALSE
+Week 236 ,W236,Year 5,,,1652,14,5,,FALSE
+Week 238 ,W238,Year 5,,,1666,14,5,,FALSE
+Week 242 ,W242,Year 5,,,1694,14,5,,FALSE
+Week 244 ,W244,Year 5,,,1708,14,5,,FALSE
+Week 247 ,W247,Year 5,,,1729,14,5,,FALSE
+Week 248 ,W248,Year 5,,,1736,14,5,,FALSE
+Week 250 ,W250,Year 5,,,1750,14,5,,FALSE
+Week 254 ,W254,Year 5,,,1778,14,5,,FALSE
+Week 256 ,W256,Year 5,,,1792,14,5,,FALSE
+Week 260 ,W260,Year 5,,,1820,14,5,,FALSE
+Drug Exposure During Pregnancy ,PREG,NoParentFolder,,,,,,,FALSE
+Adverse Events ,AE,NoParentFolder,,,,,,,TRUE
+Transmission Folder ,AETF,Adverse Events,,,,,,,FALSE
+Concomitant Medications ,CM,NoParentFolder,,,,,,,FALSE
+Early Termination ,ET,NoParentFolder,,,,,,,FALSE
+Optional Liver Biopsy Sub-study ,LBSS,NoParentFolder,,,,,,,FALSE
+Within 28 days before Biopsy Day ,D28BB,NoParentFolder,,,,,,,FALSE
+Within 7 days before Biopsy Day ,D7BB,NoParentFolder,,,,,,,FALSE
+Biopsy Day ,D0BB,NoParentFolder,,,,,,,FALSE
+Concomitant Procedures ,PR,NoParentFolder,,,,,,,TRUE
+Factor VIII Infusions ,CMF,NoParentFolder,,,,,,,FALSE
+Unscheduled ,UNS,NoParentFolder,,,,,,,FALSE
+Infusion Related Reaction ,IAR,NoParentFolder,,,,,,,FALSE
+Subject Disposition ,DS,NoParentFolder,,,,,,,FALSE
+Withdrawal of Informed Consent ,DSWEXP,NoParentFolder,,,,,,,FALSE
