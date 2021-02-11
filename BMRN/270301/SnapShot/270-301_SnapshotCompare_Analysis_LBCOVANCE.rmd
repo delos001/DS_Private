@@ -29,7 +29,7 @@ The ToplineCompare_Analysis_LABCOVANCE report explores changes associated with C
 ### **Source Scripts**
 '270-301_SnapshotCompare_Analysis.R'
 ```{r, include=FALSE}
-source('270-301_SnapshotCompare_Analysis.R', local = knitr::knit_global())
+source('270-301_SnapshotCompare_Analysis_LBCOVANCE.R', local = knitr::knit_global())
 ```
 
 ### **Inputs:**

@@ -26,7 +26,8 @@ The Bioanalytical Sciences Data Transfer Specs outline the specifications for tr
 
 ### **Source Scripts**
 ```{r, include=FALSE}
-source("./BAS/test.R", local = knitr::knit_global())
+source("./BioAnalyticalSciences/270-301_BAS_HeaderRecon.R", 
+       local = knitr::knit_global())
 ```
 
 
@@ -56,3 +57,4 @@ Upon transfer of the files, by BAS to CDM via sFTP server, clinical programming 
 The combined header file dimensions are `r nrow(bas_Bind)` rows across `r ncol(bas_Bind)` variables where one variable is derived to specify the original data set (ie: lbddpcr vs. lbiqpcr).  The component breakdown is as follows:
 *  lbiqpcr: `r nrow(lbiqpcr_header_raw)` rows across `r ncol(lbiqpcr_header_raw)` variables.  
 *  lbddpcr: `r nrow(lbddpcr_header_raw)` rows across `r ncol(lbddpcr_header_raw)` variables.
+

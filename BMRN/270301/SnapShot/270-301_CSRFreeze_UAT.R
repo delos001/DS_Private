@@ -21,9 +21,9 @@ lpkgs = c('haven', 'stringr', 'dplyr', 'tidyr')
 
 # loop through required packages & if not already installed, load, then install
 for(pkg in lpkgs) {
-  
+  arepo = "http://cran.rstudio.com/"
   if (!require(pkg, character.only = TRUE)) {
-    install.packages(pkg)
+    install.packages(pkg, repos=arepo, dependencies=TRUE)
     library(pkg, character.only = TRUE)
   }
 }
@@ -588,6 +588,25 @@ write.csv(prRaw,
           file.path(outloc, 'prRaw.csv'), row.names = FALSE)
 write.csv(pr,
           file.path(outloc, 'pr.csv'), row.names = FALSE)
+
+## find over freezing: those with PR end date > last visit date prior to 16Nov
+prover = prRaw %>%
+  ## filter out locked sites
+  dplyr::mutate(SiteNumber = sub('-.*', '', SUBJECT)) %>%
+  dplyr::filter(!SiteNumber %in% lockList) %>%
+  
+  ## join last visit date <= 16Nov20
+  dplyr::left_join(svComp_Nov[, c('SUBJECT', 'Date_of_Visit', 'OID')],
+                   by = 'SUBJECT') %>%
+  
+  dplyr::filter(!is.na(PRENDAT)) %>%
+  dplyr::filter(PRENDAT >= Date_of_Visit) %>%
+  dplyr::arrange(SUBJECT, FOLDERSEQ, PRENDAT) %>%
+  dplyr::select(SUBJECT, FOLDER, PRENDAT, PRTRT) %>%
+  unique()
+
+write.csv(prover,
+          file.path(outloc, 'prover.csv'), row.names = FALSE)
   
 
 ##-------------------------------------------------------------------

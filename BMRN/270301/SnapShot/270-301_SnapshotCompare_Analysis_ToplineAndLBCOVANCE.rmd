@@ -1,0 +1,136 @@
+---
+title: "270-301_SnapshotCompare_Topline_and_LBCOVANCE"
+author: "Jason Delosh"
+date: "2/8/2021"
+
+
+output: 
+  html_document:
+    toc: yes
+    toc_float: true
+    highlight: zenburn
+    theme: united
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS = TRUE)
+
+library(knitr); library(kableExtra); library(ggplot2)
+```
+
+
+## **Introduction**
+
+On 21Dec2020, a top-line snapshot was performed for the 270-301 study.  To monitor any changes to those data included in snapshot, clinical programming generates a 'snapshot_compare' report, comparing the topline snapshot data to current data.  
+
+The 270-301_SnapshotCompare_Topline_and_LBCOVANCE report summarized changes associated with two primary domains:
+*  EDC data defined as "Topline"
+*  Covance External Lab Datadata with a sample collection date on or before 16Nov2020
+
+The report will provide high level summary of changes and will be complemented by a separate blinded details listing.
+
+<br>
+
+### **Source Scripts**
+'270-301_SnapshotCompare_Analysis.R'
+```{r, include=FALSE}
+source('./SnapShot/270-301_SnapshotCompare_Analysis_ToplineAndLBCOVANCE.R', local = knitr::knit_global())
+```
+
+
+### **Inputs:**
+
+* snapshot_compare_topline_270301_20210201.xlsx
+* snapshot_compare_270301_2020201.xlsx
+  * sheet = LBCOVANCE
+
+<br>
+
+## **Summary**
+
+Comparing topline EDC and Covance data to the `r sctl_filedate1` equivalent datasets, `r dim(tlAndLBCOVANCE_bind)[1]` changes have occurred.  Changes to Covance data accounts for `r round(dim(lbcovancesnapjoin)[1] / dim(tlAndLBCOVANCE_bind)[1] * 100, 1)` % of the data changes compared to topline EDC data (change count: `r dim(tlAndLBCOVANCE_bind)[1] - dim(lbcovancesnapjoin)[1]`)
+
+
+### **EDC Summary of Changes**
+
+Changes to topline EDC data are reviewed across the following `r dim(mysheets)[1]` datasets, shown in table 1. While all are reviewed for changes, as of `r sctl_filedate1`, changes have been identified in `r length(mysheets)` data sets.
+
+New data points are those that are present in new data sets but not present in 21Dec20 data set.  Updated data reflects one or more changes have been made to an event since 21Dec20.  Deleted data points indicated an event was present on 21Dec20, but is no longer found in the new data sets.
+
+
+```{r, echo=FALSE}
+kable(summarySheet, caption = 'Table 1: EDC Changes by Type Across 20 Domains',
+      format = 'html', table.attr = "style='width:100%;'",) %>%
+      column_spec(column = 1, width = '3in') %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = F, position = 'center',)
+      
+```
+
+<b>
+
+For the `r length(mysheets)` data sets, total EDC data point changes by dataset and type are shown below:
+
+```{r, echo=FALSE}
+edcChanges = tlAndLBCOVANCE_bind_nores %>%
+  dplyr::filter(dataset != 'LBCOVANCE') %>%
+  dplyr::group_by(dataset, status) %>%
+  dplyr::tally()
+
+kable(edcChanges, caption = 'Table 2: EDC Changes by Dataset and Type',
+      format = 'html', table.attr = "style='width:50%;'",) %>%
+      column_spec(column = 1, width = '3in') %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = F, position = 'center',)
+      
+```
+
+<b>
+
+Excluding new and deleted data, a list of variables by data set are shown below
+
+```{r, echo=FALSE}
+edcChanges2 = tlAndLBCOVANCE_bind_nores %>%
+  dplyr::filter(dataset != 'LBCOVANCE') %>%
+  dplyr::filter(status == 'Updated') %>%
+  dplyr::group_by(dataset, VARIABLE) %>%
+  dplyr::tally() %>%
+  dplyr::arrange(dataset, desc(n))
+
+kable(edcChanges2, caption = 'Table 3: EDC Changes by Dataset and Variable',
+      format = 'html', table.attr = "style='width:50%;'",) %>%
+      column_spec(column = 1, width = '3in') %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = F, position = 'center',)
+      
+```
+
+<b>
+
+Changes to EDC data are found across the following subjects:
+
+```{r, echo=FALSE}
+edcChanges3 = tlAndLBCOVANCE_bind_nores %>%
+  dplyr::filter(dataset != 'LBCOVANCE') %>%
+  dplyr::group_by(Subject, dataset, status) %>%
+  dplyr::tally() %>%
+  dplyr::arrange(Subject, desc(n)) %>% dplyr::ungroup() %>%
+  tidyr::spread(status, n) %>% 
+  dplyr::mutate_all(~replace(., is.na(.), 0))
+
+
+
+kable(edcChanges3, caption = 'Table 4: EDC Changes by Subject, Type and Dataset',
+      format = 'html', table.attr = "style='width:50%;'",) %>%
+      column_spec(column = 1, width = '3in') %>%
+  kable_styling(bootstrap_options = c('striped', 'hover')) %>%
+  kable_classic(full_width = F, position = 'center',)
+      
+```
+
+
+
+focus: FVIII antibody chromogenic, fviii activity OSC expedited, SAEs, AESI, bleeding log, fviii infusion, elispot, av5 total antibody, fviii total antibody, central lab

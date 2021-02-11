@@ -42,7 +42,7 @@ localroot = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\'
 localpath = 'Studies\\BMRN270\\270-301\\ToplineFreeze\\SnapshotCompareFiles\\'
 
 file1 = 'snapshot_compare_270301_'
-filedate1 = '20210126'   ## <------------------enter file date here YYYYMMDD
+filedate1 = '20210205'   ## <------------------enter file date here YYYYMMDD
 ext1 = '.xlsx'
 
 
@@ -125,6 +125,8 @@ LBCOVANCE_join = LBCOVANCEBase %>%
 #           file.path(paste0(localroot, localpath),
 #                     paste0('270301_SnapShot_Compare_unroll', filedate1, '.csv')),
 #           row.names = FALSE)
+
+
 
 
 

@@ -126,8 +126,11 @@ svSubs = svCompliance %>%
                 Visit_Expected)
 
 
-
-
+t1 = as.data.frame(pdfout[4])
+t2 = as.data.frame(iconv(t1, "utf-8", "ASCII", sub = ""))
+t2 = as.data.frame(gsub("[^\u0001-\u007F]+|<U\\+\\w+>","", t1))
+test = as.data.frame(do.call(rbind, pdfout[3])
+test2 = as.data.frame(test[,2]) %>% na_if("") %>% na.omit
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## CREATE FINAL TABLE
