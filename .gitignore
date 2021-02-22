@@ -220,3 +220,4 @@ vignettes/*.pdf
 .Trashes
 ehthumbs.db
 Thumbs.db
+.Rproj.user

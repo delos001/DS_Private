@@ -40,9 +40,9 @@ source('270-301_svAnchorData.R')
 ##------------------------------------------------------------------------------
 ##------------------------------------------------------------------------------
 ## LOAD DATA
-localwd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\Studies\\'
+localwd = 'C:\\Users\\ja903976\\OneDrive - BioMarin\\Desktop\\GitHubRepo\\'
 
-path270301 = 'BMRN270\\270-301\\'
+path270301 = 'DS_Private\\BMRN\\270301\\SpecificationInputs\\'
 
 RRSCF = 'RAVE_Reporter_StudyConfiguration_Folders.csv'  ## see instructions
 
