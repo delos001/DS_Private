@@ -4,11 +4,11 @@
   
 The paper will describe the trend towards increased complexity in clinical research and the dissapointing ROI with reduced monitoring models.
 This paper will briefly summarize the need for a new frame work for designing data quality surveillance capabilties in risk-based monitoring and quality by design models within the clinical research industry.
-This paper will propose a ocmprehensive end-to-end frame work for designing a quality surveillance procedures using a modern data science inspired framework
+This paper will propose a comprehensive end-to-end frame work for designing quality surveillance procedures using a modern data science inspired framework
 
 # Introduction:
 
-## Increased complexity
+## Increased complexity in clinical trials
 
 ## Historical methodology and tools
 
@@ -17,7 +17,7 @@ This paper will propose a ocmprehensive end-to-end frame work for designing a qu
 # Methodology
 
 ## Project Management Principals
-### The PMBOX
+### The PMBOK
 
 ## Analytical Maturity
 
@@ -27,12 +27,38 @@ This paper will propose a ocmprehensive end-to-end frame work for designing a qu
 
 ## Quality Responsibility Distribution
 
+## Sunk Cost Falacy
+The inclination towards sunk cost fallacy is intuitive and pervasive.  To add to it's liklihood, convincing managers to give support a project or if one was faced with general skepticism about costs, time, or probability of success would make the optics of later reversing course or abandoning efforts scary or professionally detrimental.
+Regardless, it doesn't matter if weeks or months of time or thousands of dollars were dedicated to a project. The only deciding factor as to whether a process, tool, technology, etc should be used is "does it add value?"
+
+Sunk Cost Falacy
+	the amount of time/resources put into development of something is not an input into decision to utilize that item
+	- only question: does the thing meet our needs.  That's item
+	- if the answer is no, 
+		- next question is how did we invest so much time into something that doesn't meet our needs?
+		Answer: insufficient planning in the design
+			- there are people here who are driving design but don't have the experience to do it in a way that supports RBM models
+			
 ## Back Propagation Framework
-### Input Layer
+### Planning Input Layer
+
 ### Objective Function
-### Decision Layer
+
+### Definition Layer
+#### Contraints
+#### Technology
+#### User Scope
+
 ### Forgotten Layer
+#### Knowledge Transfer
+#### Monitor and Control
+#### Lean
+#### Synergy
+
 ### Yield Layer
+#### Procedures
+#### Tools
+
 ### Solution Layer
 
 
